@@ -1,116 +1,94 @@
 <!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>برج الباشا لؤلؤة</title>
 <style>
-:root{--bg:#e9ebee;--card:#fff;--tx:#1d2330;--gold:#a67c00;--red:#c62828;--grn:#2e7d32;--sv:#c9ced6;--fs:16px;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root{--bg:#e9ebee;--card:#fff;--tx:#1d2330;--gold:#a67c00;--red:#c62828;--grn:#2e7d32;--sv:#c9ced6;--fs:16px}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1f26;--card:#2a2e38;--tx:#eceef2;--gold:#e0b84a;--sv:#3a3f4b;color-scheme:dark}}
 :root[data-theme="dark"]{--bg:#1c1f26;--card:#2a2e38;--tx:#eceef2;--gold:#e0b84a;--sv:#3a3f4b;color-scheme:dark}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--tx);font:var(--fs) Tahoma,Arial,sans-serif;background-color:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--tx);font:var(--fs) Tahoma,Arial,sans-serif}
 header{background:linear-gradient(135deg,var(--sv),var(--card));border-bottom:3px solid var(--gold);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
-h1{margin:0;color:var(--gold);font-size:1.3em}h2{color:var(--gold);margin:.4em 0}
-main{padding:10px;max-width:1000px;margin:auto}
+h1{margin:0;color:var(--gold);font-size:1.3em}h2{color:var(--gold);margin:.4em 0}main{padding:10px;max-width:1000px;margin:auto}
 nav{display:flex;gap:6px;overflow-x:auto;padding:8px 10px}
 button,select,input,textarea{font:inherit;padding:8px;border-radius:8px;border:1px solid var(--sv);background:var(--card);color:var(--tx);margin:3px;max-width:100%}
 button{background:var(--sv);cursor:pointer;white-space:nowrap}button.on,button.p{background:var(--gold);color:#fff;border-color:var(--gold)}
 .card{background:var(--card);border-radius:12px;padding:12px;margin:8px 0;box-shadow:0 1px 4px #0002}
-.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
-.k{background:var(--bg);border-radius:10px;padding:8px;text-align:center}.k b{display:block;color:var(--gold);font-size:1.2em}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}.k{background:var(--bg);border-radius:10px;padding:8px;text-align:center}.k b{display:block;color:var(--gold);font-size:1.2em}
 .w{overflow-x:auto}table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid var(--sv);padding:6px;text-align:right}th{color:var(--gold)}
 .r{color:var(--red);font-weight:bold}.ok{color:var(--grn);font-weight:bold}.msg{background:var(--gold);color:#fff;padding:8px;border-radius:8px;margin:8px 0}
-@media print{header button,nav,button{display:none}}
+@media print{header,nav,button{display:none}}
 </style></head><body>
 <header><h1>🏢 برج الباشا لؤلؤة</h1><div id="top"></div></header><div id="nav"></div><main id="app"></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
+const SB_URL='https://witqpysweqgnkmjnmozo.supabase.co',SB_KEY='sb_publishable_2iTUZk6rbk3a79RRnfSfOA_jYhqr_ED';
+const sb=supabase.createClient(SB_URL,SB_KEY);
 const $=s=>document.querySelector(s);
 const E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const M=n=>Number(n).toLocaleString('ar-EG')+' ج.م';
-const now=()=>new Date().toLocaleString('ar-EG');
-const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-const IDB={open(){return new Promise((r,j)=>{const q=indexedDB.open('pasha',1);q.onupgradeneeded=()=>q.result.createObjectStore('kv');q.onsuccess=()=>r(q.result);q.onerror=()=>j(q.error)})},
-async get(){const d=await this.open();return new Promise(r=>{const q=d.transaction('kv').objectStore('kv').get('s');q.onsuccess=()=>r(q.result);q.onerror=()=>r()})},
-async set(v){const d=await this.open();return new Promise((r,j)=>{const t=d.transaction('kv','readwrite');t.objectStore('kv').put(v,'s');t.oncomplete=r;t.onerror=()=>j(t.error)})}};
-let S,ME,TAB='dash',OUT='',MSG='',PV=null,BUSY=false;
-const ITEMS=['المياه','الكهرباء','الأسانسير (صيانة وكهرباء)','صيانة العمارة','التصالح','الحارس','مصاريف أخرى'];
-async function save(){try{await IDB.set(JSON.parse(JSON.stringify(S)))}catch(e){MSG='تنبيه: تعذر الحفظ في المتصفح'}}
-async function H(p,s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s+p));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
-function tmp(){const a=new Uint8Array(8);crypto.getRandomValues(a);return [...a].map(x=>'abcdefghjkmnpqrstuvwxyz23456789'[x%31]).join('')}
-async function mkUser(u,role,unit,pw){const salt=uid();return{u,role,unit,salt,h:await H(pw,salt),must:role!='admin',on:true}}
-const un=k=>S.units.find(x=>x.k===k);
-const nm=k=>{const u=un(k);return u?(u.t=='s'?'محل ':'شقة ')+u.n:''};
-const rem=d=>d.amt-d.paid;
-const log=(a,d)=>S.log.unshift({at:now(),by:ME.u,role:ME.role,a,d});
-const staff=()=>ME&&ME.role!='owner';
-const cash=()=>S.open+S.pay.reduce((a,p)=>a+p.amt,0)-S.exp.reduce((a,p)=>a+p.amt,0);
-const ref=p=>p+String(++S.seq).padStart(6,'0');
+const P=n=>(Number(n)/100).toLocaleString('ar-EG')+' ج.م';
+const T=s=>new Date(s).toLocaleString('ar-EG');
+const ITEMS=['المياه','الكهرباء','الأسانسير','صيانة العمارة','التصالح','الحارس','مصاريف أخرى'];
+let ME,D={units:[],dues:[],pay:[],exp:[],notes:[],log:[],rnd:[],cash:0},TAB='dash',MSG='',OUT='',PV=null,PU='a1',IDEM=crypto.randomUUID(),BUSY=false;
+const staff=()=>ME&&ME.role!='owner',admin=()=>ME&&ME.role=='admin';
+const nm=k=>{const u=D.units.find(x=>x.id==k);return u?(u.kind=='shop'?'محل ':'شقة ')+u.num:k};
+const rem=d=>d.amount-d.paid,owed=k=>D.dues.filter(d=>d.unit_id==k).reduce((a,d)=>a+rem(d),0);
+async function rpc(n,a){const{data,error}=await sb.rpc(n,a);if(error){MSG='خطأ: '+error.message;draw();return null}return{d:data}}
 function setTheme(t){document.documentElement.dataset.theme=t;try{localStorage.setItem('th',t)}catch(e){}}
 function fs(d){const v=Math.max(12,Math.min(30,(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--fs'))||16)+d));document.documentElement.style.setProperty('--fs',v+'px');try{localStorage.setItem('fs',v)}catch(e){}}
-async function init(){
- try{const t=localStorage.getItem('th');if(t)document.documentElement.dataset.theme=t;const f=localStorage.getItem('fs');if(f)document.documentElement.style.setProperty('--fs',f+'px')}catch(e){}
- try{S=await IDB.get()}catch(e){}
- draw()}
+async function init(){try{const t=localStorage.getItem('th');if(t)document.documentElement.dataset.theme=t;const f=localStorage.getItem('fs');if(f)document.documentElement.style.setProperty('--fs',f+'px')}catch(e){}
+ const{data:{session}}=await sb.auth.getSession();if(session)await boot();else draw()}
+async function boot(){const{data:{user}}=await sb.auth.getUser();const{data}=await sb.from('profiles').select('*').eq('id',user?.id).maybeSingle();
+ if(!data){await sb.auth.signOut();ME=null;MSG='الحساب غير مفعّل';draw();return}ME=data;TAB=staff()?'dash':'mine';await load();draw()}
+async function load(){const g=async(t,o)=>{let r=sb.from(t).select('*');if(o)r=r.order(o,{ascending:false});const{data,error}=await r;if(error)MSG='تعذر تحميل '+t+': '+error.message;return data||[]};
+ D.units=(await g('units')).sort((a,b)=>a.kind==b.kind?a.num-b.num:a.kind<b.kind?-1:1);D.dues=await g('dues');D.pay=await g('payments','paid_at');D.notes=await g('notes','created_at');
+ if(staff()){D.exp=await g('expenses','spent_at');D.log=await g('audit_log','at');D.rnd=await g('rounding_diffs','created_at');const r=await sb.rpc('fn_cash');D.cash=r.data||0}}
+async function login(){const u=$('#lu').value.trim(),email=u.includes('@')?u:u.toLowerCase()+'@pasha.example.com';
+ const{error}=await sb.auth.signInWithPassword({email,password:$('#lp').value});if(error){$('#e').textContent='بيانات غير صحيحة';return}await boot()}
+async function logout(){await sb.auth.signOut();ME=null;draw()}
+async function chpw(){const p=$('#np').value;if(p.length<8){$('#e').textContent='8 أحرف على الأقل';return}
+ const{error}=await sb.auth.updateUser({password:p});if(error){$('#e').textContent=error.message;return}
+ const r=await rpc('fn_pw_done');if(r){ME.must_change=false;draw()}}
+async function reauth(){const pw=$('#ra')?.value;if(!pw)return false;const{data:{user}}=await sb.auth.getUser();const{error}=await sb.auth.signInWithPassword({email:user.email,password:pw});return !error}
 function draw(){
- $('#top').innerHTML=(ME?`<span>${ME.role=='admin'?'🦁 ':''}${E(ME.u)}</span> `:'')+`<button onclick="fs(2)">أ+</button><button onclick="fs(-2)">أ-</button><button onclick="setTheme(document.documentElement.dataset.theme=='dark'?'light':'dark')">◐</button>`+(ME?'<button onclick="ME=null;draw()">خروج</button>':'');
- if(!S){$('#nav').innerHTML='';$('#app').innerHTML=setupV();return}
- if(!ME){$('#nav').innerHTML='';$('#app').innerHTML=loginV();return}
- if(ME.must){$('#nav').innerHTML='';$('#app').innerHTML=`<div class="card"><h2>تغيير كلمة المرور</h2><input id="np" type="password" placeholder="كلمة مرور جديدة (8 أحرف فأكثر)"><button class="p" onclick="chpw()">حفظ</button><p class="r" id="e"></p></div>`;return}
- const T=staff()?[['dash','لوحة التحكم'],['units','الوحدات'],['dues','المستحقات'],['pay','تحصيل وسداد'],['exp','المصروفات'],['notes','الملاحظات'],['log','سجل التدقيق']].concat(ME.role=='admin'?[['users','المستخدمون']]:[]):[['mine','حسابي'],['notes','الملاحظات']];
- if(staff()&&['mine'].includes(TAB))TAB='dash';if(!staff()&&TAB=='dash')TAB='mine';
- $('#nav').innerHTML='<nav>'+T.map(t=>`<button class="${TAB==t[0]?'on':''}" onclick="TAB='${t[0]}';OUT='';MSG='';PV=null;draw()">${t[1]}</button>`).join('')+'</nav>';
+ $('#top').innerHTML=(ME?`<span>${admin()?'🦁 ':''}${E(ME.username)}</span> `:'')+`<button onclick="fs(2)">أ+</button><button onclick="fs(-2)">أ-</button><button onclick="setTheme(document.documentElement.dataset.theme=='dark'?'light':'dark')">◐</button>`+(ME?'<button onclick="go()">تحديث</button><button onclick="logout()">خروج</button>':'');
+ if(!ME){$('#nav').innerHTML='';$('#app').innerHTML=(MSG?`<div class="msg">${E(MSG)}</div>`:'')+`<div class="card"><h2>تسجيل الدخول</h2><input id="lu" placeholder="اسم المستخدم أو البريد" dir="ltr"><input id="lp" type="password" placeholder="كلمة المرور"><button class="p" onclick="login()">دخول</button><p class="r" id="e"></p></div>`;MSG='';return}
+ if(ME.must_change){$('#nav').innerHTML='';$('#app').innerHTML=`<div class="card"><h2>تغيير كلمة المرور</h2><input id="np" type="password" placeholder="كلمة مرور جديدة"><button class="p" onclick="chpw()">حفظ</button><p class="r" id="e"></p></div>`;return}
+ const N=staff()?[['dash','لوحة التحكم'],['units','الوحدات'],['dues','المستحقات'],['pay','تحصيل وسداد'],['exp','المصروفات'],['notes','الملاحظات'],['log','السجل']].concat(admin()?[['acc','الحسابات']]:[]):[['mine','حسابي'],['notes','الملاحظات']];
+ $('#nav').innerHTML='<nav>'+N.map(t=>`<button class="${TAB==t[0]?'on':''}" onclick="TAB='${t[0]}';OUT='';PV=null;draw()">${t[1]}</button>`).join('')+'</nav>';
  $('#app').innerHTML=(MSG?`<div class="msg">${E(MSG)}</div>`:'')+(OUT?`<div class="card"><button onclick="print()">🖨 طباعة</button><button onclick="OUT='';draw()">إغلاق</button>${OUT}</div>`:'')+V[TAB]();MSG=''}
-function setupV(){return `<div class="card"><h2>الإعداد الأولي</h2><p>إنشاء حساب المدير (Amr) وتهيئة 38 شقة ومحلين.</p><input id="ap" type="password" placeholder="كلمة مرور المدير (8 أحرف فأكثر)"><button class="p" onclick="setup()">إنشاء</button><p class="r" id="e"></p></div>`}
-async function setup(){const p=$('#ap').value;if(p.length<8){$('#e').textContent='كلمة المرور قصيرة';return}
- S={users:[],units:[],dues:[],pay:[],exp:[],log:[],notes:[],rnd:[],open:0,seq:0};
- const un0={1:'A1',2:'B2'};let t='<h2>كلمات المرور المؤقتة (تظهر مرة واحدة فقط)</h2><table><tr><th>الوحدة</th><th>المستخدم</th><th>كلمة المرور</th></tr>';
- S.users.push(await mkUser('Amr','admin',null,p));
- const L=[];for(let i=1;i<=38;i++)L.push({k:'a'+i,t:'a',n:i,u:un0[i]||'P'+i});L.push({k:'s1',t:'s',n:1,u:'FO1'},{k:'s2',t:'s',n:2,u:'MM7'});
- for(const x of L){S.units.push({k:x.k,t:x.t,n:x.n,owner:'',phone:'',user:x.u});const pw=tmp();S.users.push(await mkUser(x.u,'owner',x.k,pw));t+=`<tr><td>${nm(x.k)}</td><td dir="ltr">${x.u}</td><td dir="ltr">${pw}</td></tr>`}
- await save();ME=S.users[0];ME.must=false;log('إعداد النظام','تهيئة الوحدات والحسابات');await save();OUT=t+'</table>';draw()}
-function loginV(){return `<div class="card"><h2>تسجيل الدخول</h2><input id="lu" placeholder="اسم المستخدم" dir="ltr"><input id="lp" type="password" placeholder="كلمة المرور"><button class="p" onclick="login()">دخول</button><p class="r" id="e"></p></div>`}
-async function login(){const u=S.users.find(x=>x.u==$('#lu').value.trim());
- if(!u||!u.on||await H($('#lp').value,u.salt)!=u.h){$('#e').textContent='بيانات غير صحيحة';return}ME=u;TAB=staff()?'dash':'mine';draw()}
-async function chpw(){const p=$('#np').value;if(p.length<8){$('#e').textContent='قصيرة';return}ME.salt=uid();ME.h=await H(p,ME.salt);ME.must=false;log('تغيير كلمة مرور','');await save();draw()}
-async function reauth(){const p=$('#ra')?.value||'';return await H(p,ME.salt)==ME.h}
+async function go(){await load();draw()}
 const V={};
-V.dash=()=>{const cur=S.dues.filter(d=>d.kind=='c').reduce((a,d)=>a+rem(d),0),old=S.dues.filter(d=>d.kind=='o').reduce((a,d)=>a+rem(d),0),col=S.pay.reduce((a,p)=>a+p.amt,0),ex=S.exp.reduce((a,p)=>a+p.amt,0);
- const late=S.units.filter(u=>owed(u.k)>0);
- return `<div class="g"><div class="k">الوحدات<b>40</b></div><div class="k">مسددة<b class="ok">${40-late.length}</b></div><div class="k">عليها متأخرات<b class="r">${late.length}</b></div><div class="k">مستحقات حالية ح/<b>${M(cur)}</b></div><div class="k">مستحقات قديمة ق/<b>${M(old)}</b></div><div class="k">التحصيلات<b>${M(col)}</b></div><div class="k">المصروفات<b>${M(ex)}</b></div><div class="k">الرصيد النقدي<b>${M(cash())}</b></div></div>
- <div class="card"><h2>حالة الوحدات</h2><div class="w"><table><tr><th>الوحدة</th><th>المالك</th><th>المتبقي</th><th></th></tr>${S.units.map(u=>`<tr><td>${nm(u.k)}</td><td>${E(u.owner)}</td><td>${M(owed(u.k))}</td><td>${owed(u.k)>0?'<span class="r">✗</span>':'<span class="ok">✓</span>'}</td></tr>`).join('')}</table></div></div>`};
-const owed=k=>S.dues.filter(d=>d.unit==k).reduce((a,d)=>a+rem(d),0);
-V.units=()=>`<div class="card"><h2>الوحدات</h2><input id="q" placeholder="بحث بالاسم/الجوال/الرقم" oninput="fl()"><div class="w"><table id="ut"><tr><th>الوحدة</th><th>المالك</th><th>الجوال</th><th>المستخدم</th><th></th></tr>${S.units.map(u=>`<tr data-s="${E(nm(u.k)+u.owner+u.phone)}"><td>${nm(u.k)}</td><td><input id="o${u.k}" value="${E(u.owner)}"></td><td><input id="p${u.k}" value="${E(u.phone)}" dir="ltr"></td><td dir="ltr">${u.user}</td><td><button onclick="eu('${u.k}')">حفظ</button> <button onclick="stm('${u.k}')">كشف</button></td></tr>`).join('')}</table></div></div>`;
-function fl(){const q=$('#q').value;document.querySelectorAll('#ut tr[data-s]').forEach(r=>r.style.display=r.dataset.s.includes(q)?'':'none')}
-async function eu(k){const u=un(k),o=$('#o'+k).value,p=$('#p'+k).value;log('تعديل بيانات مالك',`${nm(k)}: ${u.owner}|${u.phone} → ${o}|${p}`);u.owner=o;u.phone=p;await save();MSG='تم الحفظ';draw()}
-function stm(k){const u=un(k);OUT=`<h2>برج الباشا لؤلؤة — كشف حساب ${nm(k)}</h2><p>المالك: ${E(u.owner)} | طُبع: ${now()} بواسطة ${E(ME.u)}</p>`+stT(k);draw()}
-function stT(k){const D=S.dues.filter(d=>d.unit==k),P=S.pay.filter(p=>p.unit==k);
- return `<div class="w"><table><tr><th>النوع</th><th>البند</th><th>الشهر</th><th>المبلغ</th><th>المسدد</th><th>المتبقي</th></tr>${D.map(d=>`<tr><td>${d.kind=='o'?'ق/':'ح/'}</td><td>${E(d.item)}</td><td>${d.m}</td><td>${M(d.amt)}</td><td>${M(d.paid)}</td><td class="${rem(d)>0?'r':'ok'}">${M(rem(d))}</td></tr>`).join('')}</table></div><p><b>إجمالي المتبقي: ${M(owed(k))}</b> — إجمالي المسدد: ${M(P.reduce((a,p)=>a+p.amt,0))}</p><div class="w"><table><tr><th>الإيصال</th><th>التاريخ</th><th>المبلغ</th></tr>${P.map(p=>`<tr><td>${p.ref}</td><td>${p.at}</td><td>${M(p.amt)}</td></tr>`).join('')}</table></div>`}
-V.mine=()=>{const u=un(ME.unit);return `<div class="card"><h2>${nm(u.k)} — ${E(u.owner)}</h2>${stT(u.k)}</div>`};
-V.dues=()=>`<div class="card"><h2>إصدار مستحقات ح/</h2><select id="di">${ITEMS.map((x,i)=>`<option value="${i}">${x}</option>`).join('')}</select><input id="dt" type="number" min="0" placeholder="الإجمالي"><input id="dm" type="month"><select id="ds"><option value="">مشترك (حسب القواعد)</option>${S.units.map(u=>`<option value="${u.k}">وحدة محددة: ${nm(u.k)}</option>`).join('')}</select><button onclick="pv()">معاينة</button><div id="pv">${PV?pvH():''}</div></div>
-<div class="card"><h2>مستحق قديم ق/</h2><select id="ou">${S.units.map(u=>`<option value="${u.k}">${nm(u.k)}</option>`).join('')}</select><input id="oa" type="number" placeholder="المبلغ"><input id="od" type="date"><input id="ow" placeholder="السبب"><button class="p" onclick="addOld()">إضافة</button></div>
-<div class="card"><h2>ترحيل المتبقي</h2><p>ينقل غير المسدد من ح/ إلى ق/ دون إنشاء حركة مالية.</p><button onclick="carry()">ترحيل</button></div>`;
-function pv(){const i=+$('#di').value,t=+$('#dt').value,m=$('#dm').value,s=$('#ds').value;if(!(t>0)||!m){MSG='أدخل المبلغ والشهر';draw();return}
- let ks,sh,rd;if(s){ks=[s];sh=t;rd=t}else{ks=S.units.filter(u=>u.t=='a'&&(i!=2||u.n>=4)).map(u=>u.k);sh=Math.round(t/ks.length*100)/100;rd=Math.ceil(sh/10)*10}
- PV={i,t,m,ks,sh,rd,tot:rd*ks.length};draw()}
-const pvH=()=>`<p>البند: ${ITEMS[PV.i]} | الإجمالي: ${M(PV.t)} | الوحدات: ${PV.ks.length}<br>النصيب قبل التقريب: ${M(PV.sh)} | بعده: ${M(PV.rd)}<br>إجمالي المفروض: ${M(PV.tot)} | فرق التقريب: ${M(PV.tot-PV.t)}</p><button class="p" onclick="apv()">اعتماد</button>`;
-async function apv(){if(BUSY||!PV)return;BUSY=true;const q=PV;PV=null;
- q.ks.forEach(k=>S.dues.push({id:uid(),unit:k,item:ITEMS[q.i],m:q.m,amt:q.rd,paid:0,kind:'c',why:'',by:ME.u}));
- if(q.tot!=q.t)S.rnd.push({m:q.m,item:ITEMS[q.i],diff:q.tot-q.t});
- log('إصدار مستحق',`${ITEMS[q.i]} ${q.m} إجمالي ${q.t} نصيب ${q.rd} × ${q.ks.length}`);await save();BUSY=false;MSG='تم الاعتماد';draw()}
-async function addOld(){const a=+$('#oa').value;if(!(a>0)){return}S.dues.push({id:uid(),unit:$('#ou').value,item:'مستحق قديم: '+$('#ow').value,m:$('#od').value||'-',amt:a,paid:0,kind:'o',by:ME.u});log('مستحق قديم',nm($('#ou').value)+' '+a);await save();MSG='تمت الإضافة';draw()}
-async function carry(){let n=0;S.dues.forEach(d=>{if(d.kind=='c'&&rem(d)>0){d.kind='o';n++}});log('ترحيل المتبقي',n+' بند');await save();MSG='تم ترحيل '+n+' بند';draw()}
-V.pay=()=>`<div class="card"><h2>تحصيل وسداد</h2><select id="pu" onchange="PU=this.value;draw()">${S.units.map(u=>`<option value="${u.k}" ${u.k==PU?'selected':''}>${nm(u.k)} ${E(u.owner)}</option>`).join('')}</select><select id="pd">${S.dues.filter(d=>d.unit==PU&&rem(d)>0).map(d=>`<option value="${d.id}">${d.kind=='o'?'ق/':'ح/'} ${E(d.item)} ${d.m} — متبقي ${rem(d)}</option>`).join('')}</select><input id="pa" type="number" min="1" placeholder="المبلغ المحصل"><input id="pn" placeholder="ملاحظات"><button class="p" id="pb" onclick="doPay()">تأكيد التحصيل</button></div>`;
-let PU='a1';
-async function doPay(){if(BUSY)return;const d=S.dues.find(x=>x.id==$('#pd').value),a=+$('#pa').value;if(!d||!(a>0)||a>rem(d)){MSG='مبلغ غير صحيح أو لا يوجد مستحق';draw();return}
- BUSY=true;$('#pb').disabled=true;d.paid+=a;const p={id:uid(),ref:ref('R'),unit:d.unit,due:d.id,amt:a,at:now(),by:ME.u,box:d.kind=='o'?'ق/':'ح/'};S.pay.push(p);log('تحصيل',`${p.ref} ${nm(d.unit)} ${a}`);await save();BUSY=false;
- OUT=`<h2>برج الباشا لؤلؤة — إيصال قبض ${p.ref}</h2><p>${nm(d.unit)} — ${E(d.item)}<br>المبلغ: ${M(a)} <span class="ok">✓ مسدد</span> | المتبقي: ${M(rem(d))}<br>${p.at} — ${E(ME.u)}</p>`;MSG='تم التحصيل';draw()}
-V.exp=()=>`<div class="card"><h2>صندوق C — المصروفات</h2><p>الرصيد المتاح: <b>${M(cash())}</b></p><input id="ea" type="number" min="1" placeholder="المبلغ"><input id="ew" placeholder="السبب"><input id="ei" placeholder="بند المصروف"><input id="eb" placeholder="المستفيد">${ME.role=='admin'?'<label><input type="checkbox" id="ex"> استثناء (رصيد غير كاف) — يتطلب كلمة المرور</label><input id="ra" type="password" placeholder="كلمة مرور المدير">':''}<button class="p" onclick="doExp()">تسجيل</button>
-<div class="w"><table><tr><th>رقم</th><th>التاريخ</th><th>المبلغ</th><th>السبب</th><th>المستفيد</th></tr>${S.exp.map(e=>`<tr><td>${e.ref}</td><td>${e.at}</td><td>${M(e.amt)}</td><td>${E(e.why)}</td><td>${E(e.who)}</td></tr>`).join('')}</table></div></div>`;
-async function doExp(){if(BUSY)return;const a=+$('#ea').value;if(!(a>0)||!$('#ew').value){MSG='أكمل البيانات';draw();return}
- if(a>cash()){if(!($('#ex')?.checked&&await reauth())){MSG='الرصيد غير كاف';draw();return}}
- BUSY=true;const e={id:uid(),ref:ref('X'),amt:a,why:$('#ew').value,item:$('#ei').value,who:$('#eb').value,at:now(),by:ME.u};S.exp.push(e);log('مصروف',`${e.ref} ${a} ${e.why}`);await save();BUSY=false;MSG='تم التسجيل';draw()}
-V.notes=()=>{const L=S.notes.filter(n=>staff()||n.g||n.unit==ME.unit);return `<div class="card"><h2>الملاحظات</h2><textarea id="nt" rows="3" placeholder="نص الملاحظة"></textarea>${staff()?'<label><input type="checkbox" id="ng"> إعلان عام</label>':''}<button class="p" onclick="note()">إرسال</button></div>`+L.map(n=>`<div class="card"><b>${n.role=='admin'?'🦁 ':''}${E(n.by)}</b> ${n.g?'(إعلان عام)':nm(n.unit)} — ${n.at}<p>${E(n.t)}</p></div>`).join('')};
-async function note(){const t=$('#nt').value.trim();if(!t)return;S.notes.unshift({by:ME.u,role:ME.role,unit:ME.unit||null,g:!!$('#ng')?.checked,t,at:now()});await save();draw()}
-V.log=()=>`<div class="card"><h2>سجل التدقيق</h2><div class="w"><table><tr><th>الوقت</th><th>المستخدم</th><th>العملية</th><th>التفاصيل</th></tr>${S.log.map(l=>`<tr><td>${l.at}</td><td>${l.role=='admin'?'🦁 ':''}${E(l.by)}</td><td>${E(l.a)}</td><td>${E(l.d)}</td></tr>`).join('')}</table></div></div><div class="card"><h2>فروق التقريب</h2>${S.rnd.map(r=>`<p>${r.m} ${E(r.item)}: ${M(r.diff)}</p>`).join('')||'—'}</div>`;
-V.users=()=>`<div class="card"><h2>المستخدمون</h2><input id="ra" type="password" placeholder="كلمة مرور المدير للتأكيد"><br><input id="su" placeholder="اسم مشرف جديد" dir="ltr"><button class="p" onclick="addSup()">إنشاء مشرف</button><div class="w"><table>${S.users.map(u=>`<tr><td dir="ltr">${E(u.u)}</td><td>${u.role}</td><td>${u.on?'نشط':'موقوف'}</td><td><button onclick="rst('${u.u}')">إعادة تعيين</button><button onclick="tg('${u.u}')">إيقاف/تفعيل</button></td></tr>`).join('')}</table></div></div>`;
-async function addSup(){if(!await reauth()){MSG='كلمة المرور غير صحيحة';draw();return}const n=$('#su').value.trim();if(!n||S.users.some(u=>u.u==n)){MSG='اسم غير صالح';draw();return}const pw=tmp();S.users.push(await mkUser(n,'sup',null,pw));log('إنشاء مشرف',n);await save();OUT=`<p>المشرف: <b dir="ltr">${E(n)}</b> كلمة المرور المؤقتة: <b dir="ltr">${pw}</b></p>`;draw()}
-async function rst(n){if(!await reauth()){MSG='كلمة المرور غير صحيحة';draw();return}const u=S.users.find(x=>x.u==n),pw=tmp();u.salt=uid();u.h=await H(pw,u.salt);u.must=u.role!='admin';log('إعادة تعيين كلمة مرور',n);await save();OUT=`<p>${E(n)}: <b dir="ltr">${pw}</b></p>`;draw()}
-async function tg(n){if(n=='Amr'||!await reauth()){MSG='غير مسموح';draw();return}const u=S.users.find(x=>x.u==n);u.on=!u.on;log('تغيير حالة حساب',n);await save();draw()}
+V.dash=()=>{const cur=D.dues.filter(d=>d.list=='current').reduce((a,d)=>a+rem(d),0),old=D.dues.filter(d=>d.list=='old').reduce((a,d)=>a+rem(d),0),col=D.pay.reduce((a,p)=>a+p.amount,0),ex=D.exp.reduce((a,p)=>a+p.amount,0),late=D.units.filter(u=>owed(u.id)>0);
+ return `<div class="g"><div class="k">الوحدات<b>${D.units.length}</b></div><div class="k">مسددة<b class="ok">${D.units.length-late.length}</b></div><div class="k">متأخرة<b class="r">${late.length}</b></div><div class="k">ح/ المتبقي<b>${P(cur)}</b></div><div class="k">ق/ المتبقي<b>${P(old)}</b></div><div class="k">التحصيلات<b>${P(col)}</b></div><div class="k">المصروفات<b>${P(ex)}</b></div><div class="k">الرصيد النقدي<b>${P(D.cash)}</b></div></div>
+ <div class="card"><h2>حالة الوحدات</h2><div class="w"><table><tr><th>الوحدة</th><th>المالك</th><th>المتبقي</th><th></th></tr>${D.units.map(u=>`<tr><td>${nm(u.id)}</td><td>${E(u.owner_name)}</td><td>${P(owed(u.id))}</td><td>${owed(u.id)>0?'<span class="r">✗</span>':'<span class="ok">✓</span>'}</td></tr>`).join('')}</table></div></div>`};
+V.units=()=>`<div class="card"><h2>الوحدات</h2><input id="q" placeholder="بحث" oninput="const q=this.value;document.querySelectorAll('#ut tr[data-s]').forEach(r=>r.style.display=r.dataset.s.includes(q)?'':'none')"><div class="w"><table id="ut"><tr><th>الوحدة</th><th>المالك</th><th>الجوال</th><th></th></tr>${D.units.map(u=>`<tr data-s="${E(nm(u.id)+u.owner_name+u.phone)}"><td>${nm(u.id)}</td><td><input id="o${u.id}" value="${E(u.owner_name)}"></td><td><input id="p${u.id}" value="${E(u.phone)}" dir="ltr"></td><td><button onclick="eu('${u.id}')">حفظ</button><button onclick="stm('${u.id}')">كشف</button></td></tr>`).join('')}</table></div></div>`;
+async function eu(k){const r=await rpc('fn_edit_unit',{p_id:k,p_owner:$('#o'+k).value,p_phone:$('#p'+k).value});if(r){MSG='تم الحفظ';await go()}}
+function stT(k){const Dd=D.dues.filter(d=>d.unit_id==k),Pp=D.pay.filter(p=>p.unit_id==k);
+ return `<div class="w"><table><tr><th>النوع</th><th>البند</th><th>الفترة</th><th>المبلغ</th><th>المسدد</th><th>المتبقي</th></tr>${Dd.map(d=>`<tr><td>${d.list=='old'?'ق/':'ح/'}</td><td>${E(d.item)}</td><td>${E(d.period||d.due_date)}</td><td>${P(d.amount)}</td><td>${P(d.paid)}</td><td class="${rem(d)>0?'r':'ok'}">${P(rem(d))}</td></tr>`).join('')}</table></div><p><b>إجمالي المتبقي: ${P(owed(k))}</b></p><div class="w"><table><tr><th>إيصال</th><th>التاريخ</th><th>المبلغ</th></tr>${Pp.map(p=>`<tr><td>${p.receipt_no}</td><td>${T(p.paid_at)}</td><td>${P(p.amount)}</td></tr>`).join('')}</table></div>`}
+function stm(k){const u=D.units.find(x=>x.id==k);OUT=`<h2>برج الباشا لؤلؤة — كشف حساب ${nm(k)}</h2><p>المالك: ${E(u.owner_name)} | طُبع: ${T(new Date())} بواسطة ${E(ME.username)}</p>`+stT(k);draw()}
+V.mine=()=>{const k=ME.unit_id;const u=D.units.find(x=>x.id==k);return `<div class="card"><h2>${nm(k)} — ${E(u?.owner_name)}</h2>${stT(k)}</div>`};
+V.dues=()=>`<div class="card"><h2>إصدار مستحقات ح/</h2><select id="di">${ITEMS.map(x=>`<option>${x}</option>`).join('')}</select><input id="dt" type="number" min="0" step="0.01" placeholder="الإجمالي بالجنيه"><input id="dm" type="month"><select id="ds"><option value="">مشترك (حسب القواعد)</option>${D.units.map(u=>`<option value="${u.id}">وحدة محددة: ${nm(u.id)}</option>`).join('')}</select><button onclick="pv()">معاينة</button>${PV?`<p>الوحدات: ${PV.n} | النصيب قبل التقريب: ${P(PV.sh)} | بعده: ${P(PV.rd)}<br>إجمالي المفروض: ${P(PV.rd*PV.n)} | فرق التقريب: ${P(PV.rd*PV.n-PV.t)}</p><button class="p" onclick="apv()">اعتماد</button>`:''}</div>
+<div class="card"><h2>مستحق قديم ق/</h2><select id="ou">${D.units.map(u=>`<option value="${u.id}">${nm(u.id)}</option>`).join('')}</select><input id="oa" type="number" min="0" step="0.01" placeholder="المبلغ"><input id="od" type="date"><input id="ow" placeholder="السبب"><button class="p" onclick="addOld()">إضافة</button></div>
+<div class="card"><h2>ترحيل المتبقي</h2><p>ينقل غير المسدد من ح/ إلى ق/ دون أي حركة مالية.</p><button onclick="carry()">ترحيل</button></div>`;
+function pv(){const item=$('#di').value,t=Math.round(+$('#dt').value*100),s=$('#ds').value;if(!(t>0)||!$('#dm').value){MSG='أدخل المبلغ والشهر';draw();return}
+ const n=s?1:D.units.filter(u=>u.kind=='apartment'&&(item!='الأسانسير'||u.num>=4)).length,sh=Math.ceil(t/n),rd=s?t:Math.ceil(sh/1000)*1000;PV={item,t,n,sh,rd,s,m:$('#dm').value};draw()}
+async function apv(){if(BUSY||!PV)return;BUSY=true;const r=await rpc('fn_issue_charge',{p_item:PV.item,p_period:PV.m,p_total:PV.t,p_unit:PV.s||null});BUSY=false;if(r){PV=null;MSG='تم الاعتماد';await go()}}
+async function addOld(){const a=Math.round(+$('#oa').value*100);if(!(a>0))return;const r=await rpc('fn_add_old',{p_unit:$('#ou').value,p_amount:a,p_date:$('#od').value||null,p_reason:$('#ow').value});if(r){MSG='تمت الإضافة';await go()}}
+async function carry(){const r=await rpc('fn_carry_over');if(r){MSG='تم ترحيل '+r.d+' بند';await go()}}
+V.pay=()=>`<div class="card"><h2>تحصيل وسداد</h2><select onchange="PU=this.value;draw()">${D.units.map(u=>`<option value="${u.id}" ${u.id==PU?'selected':''}>${nm(u.id)} ${E(u.owner_name)}</option>`).join('')}</select><select id="pd">${D.dues.filter(d=>d.unit_id==PU&&rem(d)>0).map(d=>`<option value="${d.id}">${d.list=='old'?'ق/':'ح/'} ${E(d.item)} — متبقي ${P(rem(d))}</option>`).join('')}</select><input id="pa" type="number" min="0" step="0.01" placeholder="المبلغ المحصل"><input id="pn" placeholder="ملاحظات"><button class="p" id="pb" onclick="doPay()">تأكيد التحصيل</button></div>`;
+async function doPay(){if(BUSY)return;const a=Math.round(+$('#pa').value*100),d=$('#pd').value;if(!d||!(a>0)){MSG='بيانات غير مكتملة';draw();return}
+ BUSY=true;$('#pb').disabled=true;const r=await rpc('fn_pay',{p_due:d,p_amount:a,p_note:$('#pn').value,p_idem:IDEM});BUSY=false;
+ if(r){IDEM=crypto.randomUUID();await load();OUT=`<h2>برج الباشا لؤلؤة — إيصال قبض رقم ${r.d}</h2><p>${nm(PU)} — المبلغ ${P(a)} <span class="ok">✓</span><br>${T(new Date())} — ${E(ME.username)}</p>`;MSG='تم التحصيل';draw()}else{const b=$('#pb');if(b)b.disabled=false}}
+V.exp=()=>`<div class="card"><h2>صندوق C — المصروفات</h2><p>الرصيد المتاح: <b>${P(D.cash)}</b></p><input id="ea" type="number" min="0" step="0.01" placeholder="المبلغ"><input id="ew" placeholder="السبب"><input id="ei" placeholder="البند"><input id="eb" placeholder="المستفيد">${admin()?'<label><input type="checkbox" id="ex"> استثناء (رصيد غير كاف)</label><input id="ra" type="password" placeholder="كلمة مرورك للتأكيد">':''}<button class="p" id="eb2" onclick="doExp()">تسجيل</button></div>
+${admin()?`<div class="card"><h2>الرصيد الافتتاحي / تسوية</h2><input id="oa2" type="number" step="0.01" placeholder="المبلغ"><input id="or" placeholder="السبب"><button onclick="opening()">حفظ</button></div>`:''}
+<div class="card"><div class="w"><table><tr><th>رقم</th><th>التاريخ</th><th>المبلغ</th><th>السبب</th><th>المستفيد</th></tr>${D.exp.map(e=>`<tr><td>${e.expense_no}</td><td>${T(e.spent_at)}</td><td>${P(e.amount)}</td><td>${E(e.reason)}</td><td>${E(e.beneficiary)}</td></tr>`).join('')}</table></div></div>`;
+async function doExp(){if(BUSY)return;const a=Math.round(+$('#ea').value*100);if(!(a>0)||!$('#ew').value){MSG='أكمل البيانات';draw();return}
+ const ex=!!$('#ex')?.checked;if(ex&&!await reauth()){MSG='كلمة المرور غير صحيحة';draw();return}
+ BUSY=true;const r=await rpc('fn_expense',{p_amount:a,p_reason:$('#ew').value,p_category:$('#ei').value,p_who:$('#eb').value,p_idem:IDEM,p_exception:ex});BUSY=false;if(r){IDEM=crypto.randomUUID();MSG='تم التسجيل';await go()}}
+async function opening(){if(!await reauth()){MSG='أدخل كلمة مرورك في خانة التأكيد بشاشة المصروفات';draw();return}const r=await rpc('fn_set_opening',{p_amount:Math.round(+$('#oa2').value*100),p_reason:$('#or').value});if(r){MSG='تم';await go()}}
+V.notes=()=>`<div class="card"><h2>الملاحظات</h2><textarea id="nt" rows="3" placeholder="نص الملاحظة"></textarea>${staff()?'<label><input type="checkbox" id="ng"> إعلان عام</label>':''}<button class="p" onclick="note()">إرسال</button></div>`+D.notes.filter(n=>!n.hidden||staff()).map(n=>`<div class="card"><b>${E(n.author_name)}</b> ${n.is_public?'(إعلان عام)':nm(n.unit_id)} — ${T(n.created_at)}${n.hidden?' (مخفية)':''}<p>${E(n.body)}</p>${admin()&&!n.hidden?`<button onclick="hide('${n.id}')">إخفاء</button>`:''}</div>`).join('');
+async function note(){const b=$('#nt').value.trim();if(!b)return;const pub=!!$('#ng')?.checked;const{error}=await sb.from('notes').insert({body:b,is_public:pub,unit_id:pub?null:(ME.unit_id||null),author_name:ME.username});if(error)MSG='خطأ: '+error.message;else MSG='تم الإرسال';await go()}
+async function hide(id){const r=await rpc('fn_hide_note',{p_id:id});if(r)await go()}
+V.log=()=>`<div class="card"><h2>سجل التدقيق</h2><div class="w"><table><tr><th>الوقت</th><th>المستخدم</th><th>العملية</th><th>التفاصيل</th></tr>${D.log.map(l=>`<tr><td>${T(l.at)}</td><td>${l.actor_role=='admin'?'🦁 ':''}${E(l.actor_name)}</td><td>${E(l.action)}</td><td dir="ltr">${E(JSON.stringify(l.detail))}</td></tr>`).join('')}</table></div></div><div class="card"><h2>فروق التقريب</h2>${D.rnd.map(r=>`<p>${E(r.period)} ${E(r.item)}: ${P(r.amount)}</p>`).join('')||'—'}</div>`;
+V.acc=()=>`<div class="card"><h2>الحسابات</h2><p>إنشاء حسابات الشقق والمحلات التي ليس لها حساب بعد (كلمات مرور عشوائية تظهر مرة واحدة).</p><button class="p" onclick="mk({})">إنشاء حسابات الوحدات</button><br><input id="su" placeholder="اسم مشرف جديد" dir="ltr"><button onclick="mk({supervisor:$('#su').value.trim()})">إنشاء مشرف</button></div>`;
+async function mk(b){const{data,error}=await sb.functions.invoke('bright-action',{body:b});if(error||data?.error){MSG='خطأ: '+(data?.error||error.message);draw();return}
+ OUT='<h2>كلمات المرور المؤقتة (تظهر مرة واحدة)</h2><table><tr><th>المستخدم</th><th>كلمة المرور</th></tr>'+(data.created||[]).map(x=>`<tr><td dir="ltr">${E(x.user)}</td><td dir="ltr">${E(x.password)}</td></tr>`).join('')+'</table>';draw()}
 init();
 </script></body></html>
