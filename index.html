@@ -1,0 +1,275 @@
+<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>AL BASHA LAOO</title>
+<style>
+:root{--bg:#e9ebee;--card:#fff;--tx:#1d2330;--gold:#a67c00;--red:#c62828;--grn:#2e7d32;--sv:#c9ced6;--fs:16px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1f26;--card:#2a2e38;--tx:#eceef2;--gold:#e0b84a;--sv:#3a3f4b;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1c1f26;--card:#2a2e38;--tx:#eceef2;--gold:#e0b84a;--sv:#3a3f4b;color-scheme:dark}
+body{margin:0;background:var(--bg);color:var(--tx);font:var(--fs) Tahoma,Arial,sans-serif}
+header{background:linear-gradient(135deg,var(--sv),var(--card));border-bottom:3px solid var(--gold);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
+h1{margin:0;color:var(--gold);font-size:1.3em}h2{color:var(--gold);margin:.4em 0}main{padding:10px;max-width:1000px;margin:auto}
+nav{display:flex;gap:6px;overflow-x:auto;padding:8px 10px}
+button,select,input,textarea{font:inherit;padding:8px;border-radius:8px;border:1px solid var(--sv);background:var(--card);color:var(--tx);margin:3px;max-width:100%}
+button{background:var(--sv);cursor:pointer;white-space:nowrap}button.on,button.p{background:var(--gold);color:#fff;border-color:var(--gold)}
+.card{background:var(--card);border-radius:12px;padding:12px;margin:8px 0;box-shadow:0 1px 4px #0002}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}.k{background:var(--bg);border-radius:10px;padding:8px;text-align:center}.k b{display:block;color:var(--gold);font-size:1.2em}
+.w{overflow-x:auto}table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid var(--sv);padding:6px;text-align:right}th{color:var(--gold)}
+.r{color:var(--red);font-weight:bold}.ok{color:var(--grn);font-weight:bold}.msg{background:var(--gold);color:#fff;padding:8px;border-radius:8px;margin:8px 0}
+@media print{header,nav,button{display:none}}
+</style>
+<style id="basha-bg">
+body{position:relative;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;z-index:-2;background-image:url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1600&q=70');background-size:cover;background-position:center;opacity:.07;pointer-events:none}
+body:after{content:"";position:fixed;inset:0;z-index:-1;background:rgba(255,255,255,.84);pointer-events:none}
+@media(prefers-color-scheme:dark){body:after{background:rgba(20,22,28,.90)}}
+#app,#nav,#alr,header{position:relative;z-index:1}
+</style>
+</head><body>
+<header><h1>🏢 AL BASHA LAOO</h1><div id="top"></div></header><div id="alr"></div><div id="nav"></div><main id="app"></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const SB_URL='https://witqpysweqgnkmjnmozo.supabase.co',SB_KEY='sb_publishable_2iTUZk6rbk3a79RRnfSfOA_jYhqr_ED';
+const sb=supabase.createClient(SB_URL,SB_KEY);
+const $=s=>document.querySelector(s);
+const E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const P=n=>(Number(n)/100).toLocaleString('ar-EG')+' ج.م';
+const T=s=>new Date(s).toLocaleString('ar-EG');
+const ITEMS=['المياه','الكهرباء','كهرباء الأسانسير','صيانة الأسانسير','صيانة العمارة','التصالح','الحارس','مصاريف أخرى'];
+let ME,D={units:[],dues:[],pay:[],exp:[],notes:[],log:[],rnd:[],alerts:[],adj:[],cash:0},TAB='dash',MSG='',OUT='',PV=null,PS=null,EU='a1',LAST=null,OWN=false,ASK=null,PU='a1',IDEM=crypto.randomUUID(),BUSY=false;
+const staff=()=>ME&&['owner','admin','supervisor','manager'].includes(ME.role),admin=()=>ME&&['owner','admin','manager'].includes(ME.role);
+const nm=k=>{const u=D.units.find(x=>x.id==k);return u?(u.kind=='shop'?'محل ':'شقة ')+u.num:k};
+const rem=d=>d.amount-d.paid,owed=k=>D.dues.filter(d=>d.unit_id==k).reduce((a,d)=>a+rem(d),0);
+async function rpc(n,a){const{data,error}=await sb.rpc(n,a);if(error){MSG='خطأ: '+error.message;draw();return null}return{d:data}}
+function setTheme(t){document.documentElement.dataset.theme=t;try{localStorage.setItem('th',t)}catch(e){}}
+function fs(d){const v=Math.max(12,Math.min(30,(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--fs'))||16)+d));document.documentElement.style.setProperty('--fs',v+'px');try{localStorage.setItem('fs',v)}catch(e){}}
+async function init(){try{const t=localStorage.getItem('th');if(t)document.documentElement.dataset.theme=t;const f=localStorage.getItem('fs');if(f)document.documentElement.style.setProperty('--fs',f+'px')}catch(e){}
+ const{data:{session}}=await sb.auth.getSession();if(session)await boot();else draw()}
+async function boot(){const{data:{user}}=await sb.auth.getUser();const{data}=await sb.from('profiles').select('*').eq('id',user?.id).maybeSingle();
+ if(!data){await sb.auth.signOut();ME=null;MSG='الحساب غير مفعّل';draw();return}ME=data;TAB=staff()?'dash':'mine';{const o=await sb.rpc('fn_is_creator');OWN=o.data===true}await load();draw();startLive()}
+async function load(){const g=async(t,o)=>{let r=sb.from(t).select('*');if(o)r=r.order(o,{ascending:false});const{data,error}=await r;if(error)MSG='تعذر تحميل '+t+': '+error.message;return data||[]};
+ D.units=(await g('units')).sort((a,b)=>a.kind==b.kind?a.num-b.num:a.kind<b.kind?-1:1);D.dues=await g('dues');D.pay=await g('payments','paid_at');D.notes=await g('notes','created_at');
+ D.exp=await g('expenses','spent_at');D.log=await g('audit_log','at');D.rnd=await g('rounding_diffs','created_at');
+ const al=await sb.from('alerts').select('*').order('last_at',{ascending:false});D.alerts=al.data||[];const r=await sb.rpc('fn_cash');D.cash=r.data||0;D.adj=await g('adjustments','created_at');LAST=new Date()}
+async function login(){
+ const u=$('#lu').value.trim();
+ let email=u;
+ if(!u.includes('@')){
+   const rr=await sb.rpc('fn_resolve_username',{p_username:u});
+   if(rr.error||!rr.data){$('#e').textContent='اسم المستخدم غير مسجل أو غير مفعّل';return}
+   email=rr.data;
+ }
+ const{error}=await sb.auth.signInWithPassword({email,password:$('#lp').value});
+ if(error){$('#e').textContent='بيانات الدخول غير صحيحة';return}
+ await boot()}
+async function logout(){stopLive();await sb.auth.signOut();ME=null;OWN=false;ASK=null;draw()}
+async function chpw(){const p=$('#np').value;if(p.length<8){$('#e').textContent='8 أحرف على الأقل';return}
+ const{error}=await sb.auth.updateUser({password:p});if(error){$('#e').textContent=error.message;return}
+ const r=await rpc('fn_pw_done');if(r){ME.must_change=false;draw()}}
+async function reauth(){const pw=$('#ra')?.value;if(!pw)return false;const{data:{user}}=await sb.auth.getUser();const{error}=await sb.auth.signInWithPassword({email:user.email,password:pw});return !error}
+function draw(){
+ $('#top').innerHTML=(ME?`<span>${OWN?'👑 ':admin()?'🦁 ':''}${E(ME.username)}</span> `:'')+`<button onclick="fs(2)">أ+</button><button onclick="fs(-2)">أ-</button><button onclick="setTheme(document.documentElement.dataset.theme=='dark'?'light':'dark')">◐</button>`+(ME?'<small>'+(LAST?'آخر تحديث '+LAST.toLocaleTimeString('ar-EG'):'')+'</small><button onclick="go()">🔄 تحديث</button><button onclick="logout()">خروج</button>':'');
+ if(!ME){$('#alr').innerHTML='';$('#nav').innerHTML='';$('#app').innerHTML=(MSG?`<div class="msg">${E(MSG)}</div>`:'')+`<div class="card"><h2>تسجيل الدخول</h2><input id="lu" placeholder="اسم المستخدم أو البريد" dir="ltr"><input id="lp" type="password" placeholder="كلمة المرور"><button class="p" onclick="login()">دخول</button><p class="r" id="e"></p></div>`;MSG='';return}
+ if(ME.must_change){$('#nav').innerHTML='';$('#app').innerHTML=`<div class="card"><h2>تغيير كلمة المرور</h2><input id="np" type="password" placeholder="كلمة مرور جديدة"><button class="p" onclick="chpw()">حفظ</button><p class="r" id="e"></p></div>`;return}
+ const open=D.alerts.filter(a=>!a.dismissed),N=(staff()?[['dash','لوحة التحكم']]:[['mine','حسابي'],['dash','لوحة التحكم']]).concat([['units','الوحدات']],staff()?[['dues','المستحقات']]:[],[['pay','التسديد'],['exp','المصروفات'],['notes','الملاحظات'],['log','السجل'],['alert','إنذار'+(open.length?' ('+open.length+')':'')]],admin()?[['acc','الحسابات']]:[]);
+ $('#alr').innerHTML=open.length?`<div class="msg" style="background:var(--red);position:sticky;top:0;z-index:9;cursor:pointer;margin:0;border-radius:0" onclick="TAB='alert';OUT='';PV=null;PS=null;draw()">⚠️ تنبيه: ${nm(open[0].unit_id)} حاولت التلاعب في بيانات النظام — ${T(open[0].last_at)}${open.length>1?' (+'+(open.length-1)+' إنذارات أخرى)':''}</div>`:'';
+ $('#nav').innerHTML='<nav>'+N.map(t=>`<button class="${TAB==t[0]?'on':''}" onclick="TAB='${t[0]}';OUT='';PV=null;PS=null;draw()">${t[1]}</button>`).join('')+'</nav>';
+ $('#app').innerHTML=(MSG?`<div class="msg">${E(MSG)}</div>`:'')+(ASK?askHtml():'')+(OUT?`<div class="card"><button onclick="print()">🖨 طباعة</button><button onclick="OUT='';draw()">إغلاق</button>${OUT}</div>`:'')+V[TAB]();MSG=''}
+const obEdit=(l,fn,a,reason)=>OWN?`<button onclick='askAmt(${JSON.stringify(l)},${JSON.stringify(fn)},${JSON.stringify(a)},${!!reason})'>✎</button>`:'';
+const obDel=(l,fn,a)=>OWN?`<button onclick='askDel(${JSON.stringify(l)},${JSON.stringify(fn)},${JSON.stringify(a)})'>🗑</button>`:'';
+function askAmt(label,fn,args,reason){ASK={label,fn,args,amt:true,reason};window.scrollTo(0,0);draw()}
+function askDel(label,fn,args){ASK={label,fn,args};window.scrollTo(0,0);draw()}
+const askHtml=()=>`<div class="card" style="border:2px solid var(--red)"><h2>👑 ${E(ASK.label)}</h2>${ASK.amt?'<input id="ov" type="number" min="0.01" step="0.01" placeholder="المبلغ الجديد (ج.م)">':''}${ASK.reason?'<input id="orr" placeholder="السبب">':''}<input id="ow" type="password" placeholder="كلمة مرورك للتأكيد"><button class="p" onclick="ownerGo()">تأكيد</button><button onclick="ASK=null;draw()">إلغاء</button></div>`;
+async function ownerGo(){if(BUSY||!ASK)return;const pw=$('#ow').value;if(!pw)return;const a={...ASK.args};
+ if(ASK.amt){const v=Math.round(+$('#ov').value*100);if(!(v>0)){MSG='أدخل مبلغًا صحيحًا';draw();return}a.p_amount=v}
+ if(ASK.reason)a.p_reason=$('#orr').value;const fn=ASK.fn;
+ BUSY=true;const{data:{user}}=await sb.auth.getUser();const{error}=await sb.auth.signInWithPassword({email:user.email,password:pw});
+ if(error){BUSY=false;ASK=null;MSG='كلمة المرور غير صحيحة';draw();return}
+ ASK=null;const r=await rpc(fn,a);BUSY=false;if(r){MSG=r.d==null?'غير مصرح':'تم التنفيذ';await go()}}
+const adjCard=()=>`<div class="card"><h2>👑 التسويات / الرصيد الافتتاحي</h2><div class="w"><table>${D.adj.map(a=>`<tr><td>${T(a.created_at)}</td><td>${P(a.amount)}</td><td>${E(a.reason)}</td><td>${obDel('مسح تسوية','fn_owner_delete_adjustment',{p_id:a.id})}</td></tr>`).join('')||'<tr><td>—</td></tr>'}</table></div></div>`;
+let LIVE=null,LT=null,LI=null;
+function startLive(){if(LIVE)return;try{LIVE=sb.channel('live');['dues','payments','expenses','alerts','units','notes','adjustments','audit_log','rounding_diffs'].forEach(t=>LIVE.on('postgres_changes',{event:'*',schema:'public',table:t},()=>soon()));LIVE.subscribe()}catch(e){}
+ LI=setInterval(()=>{if(ME&&!document.hidden)soon()},30000)}
+function stopLive(){try{if(LIVE)sb.removeChannel(LIVE)}catch(e){}LIVE=null;clearInterval(LI);clearTimeout(LT)}
+function soon(){clearTimeout(LT);LT=setTimeout(async()=>{if(!ME)return;if(BUSY){soon();return}
+ await load();const a=document.activeElement,typing=a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)&&a.type!='button'&&a.type!='checkbox';
+ const form=['dues','exp','notes'].includes(TAB)&&[...document.querySelectorAll('input:not([type=checkbox]):not([type=file]),textarea')].some(x=>x.value);
+ if(!typing&&!PV&&!PS&&!form&&!ASK)draw()},600)}
+async function go(){await load();MSG=MSG||'✓ تم التحديث';draw()}
+const V={};
+const isEl=i=>i.includes('الأسانسير'),bal=(k,b)=>D.dues.filter(d=>d.unit_id==k&&d.list==b).reduce((a,d)=>a+rem(d),0);
+const itemDues=(k,item)=>D.dues.filter(d=>d.unit_id==k&&d.item==item).sort((a,b)=>new Date(a.created_at||a.due_date||0)-new Date(b.created_at||b.due_date||0));
+const itemTotal=(k,item)=>itemDues(k,item).reduce((a,d)=>a+d.amount,0);
+const itemPaid=(k,item)=>itemDues(k,item).reduce((a,d)=>a+d.paid,0);
+const itemRem=(k,item)=>itemDues(k,item).reduce((a,d)=>a+rem(d),0);
+const itemStatus=(k,item)=>{
+ const ds=itemDues(k,item), total=ds.reduce((a,d)=>a+d.amount,0), r=ds.reduce((a,d)=>a+rem(d),0), paid=ds.reduce((a,d)=>a+d.paid,0);
+ if(!total)return '<span>—</span>';
+ if(r<=0)return '<span class="ok">✓ سدد بالكامل</span>';
+ if(paid>0)return '<span style="color:var(--gold);font-weight:bold">◐ سداد جزئي</span>';
+ return '<span class="r">✗ لم يسدد</span>';
+};
+const bx=(k,b)=>{const v=bal(k,b);return P(v)};
+function selPayItem(k,item){PS={k,item};window.scrollTo(0,0);draw()}
+function payPanel(){
+ const ds=itemDues(PS.k,PS.item), v=ds.reduce((a,d)=>a+rem(d),0);
+ return `<div class="card" style="border:2px solid var(--gold)">
+ <h2>💳 سداد بند ${E(PS.item)} — ${nm(PS.k)}</h2>
+ <p>إجمالي المتبقي من هذا البند: <b>${P(v)}</b></p>
+ <button class="p" onclick="payItem(${v})">✔ سداد كلي (${P(v)})</button><br>
+ <input id="pa" type="number" min="0.01" max="${(v/100).toFixed(2)}" step="0.01" placeholder="مبلغ السداد الجزئي بالجنيه">
+ <button onclick="payItem(Math.round(+$('#pa').value*100))">سداد جزئي</button>
+ <input id="pn" placeholder="ملاحظة (اختياري)">
+ <button onclick="PS=null;draw()">إلغاء</button>
+ </div>`;
+}
+async function payItem(a){
+ if(BUSY||!PS)return;
+ if(!(a>0)){MSG='أدخل مبلغًا صحيحًا';draw();return}
+ const ds=itemDues(PS.k,PS.item), total=ds.reduce((s,d)=>s+rem(d),0);
+ if(a>total){MSG='مبلغ السداد أكبر من المتبقي في هذا البند';draw();return}
+ BUSY=true;
+ let left=a, last=null, note=$('#pn')?.value||null;
+ for(const d of ds){
+   if(left<=0)break;
+   const x=Math.min(left,rem(d));
+   if(x<=0)continue;
+   const r=await rpc('fn_pay_due',{p_due_id:d.id,p_amount:x,p_note:note,p_idem:crypto.randomUUID()});
+   if(!r||r.d==null){BUSY=false;return}
+   last=r.d; left-=x;
+ }
+ BUSY=false;
+ if(left>0){MSG='تعذر إكمال السداد بالكامل';await go();return}
+ PS=null;const receipt=last&&typeof last==='object'?last.receipt_no:last;MSG='تم تسجيل السداد بنجاح'+(receipt?' — إيصال رقم '+receipt:'');await go();
+}
+V.dash=()=>{
+ const cur=D.dues.filter(d=>d.list=='current').reduce((a,d)=>a+rem(d),0),
+ old=D.dues.filter(d=>d.list=='old').reduce((a,d)=>a+rem(d),0),
+ col=D.pay.reduce((a,p)=>a+p.amount,0),
+ ex=D.exp.reduce((a,p)=>a+p.amount,0),
+ late=D.units.filter(u=>owed(u.id)>0);
+ const unitRows=D.units.map(u=>{
+   const rows=ITEMS.map(item=>{
+     const total=itemTotal(u.id,item), paid=itemPaid(u.id,item), r=itemRem(u.id,item);
+     if(!total)return '';
+     return `<tr>
+       <td>${E(item)}</td><td>${P(total)}</td><td>${P(paid)}</td>
+       <td class="${r>0?'r':'ok'}">${P(r)}</td>
+       <td>${itemStatus(u.id,item)}</td>
+       <td>${staff()&&r>0?`<button class="p" onclick="selPayItem('${u.id}',${JSON.stringify(item)})">💳 سداد</button>`:''}</td>
+     </tr>`;
+   }).join('');
+   const total=owed(u.id);
+   return `<tr><td colspan="6"><b>${nm(u.id)} — ${E(u.owner_name)}</b> | إجمالي المتبقي: <span class="${total>0?'r':'ok'}">${P(total)}</span></td></tr>
+   ${rows||'<tr><td colspan="6">لا توجد مستحقات مسجلة لهذه الوحدة</td></tr>'}`;
+ }).join('');
+ return `<div class="g">
+ <div class="k" style="grid-column:1/-1;border:2px solid var(--gold)">💰 رصيد الصندوق المتاح<b style="font-size:1.6em">${P(D.cash)}</b><small>إجمالي المحصّل ${P(col)} | المصروفات ${P(ex)}</small></div>
+ <div class="k">الوحدات<b>${D.units.length}</b></div><div class="k">مسددة<b class="ok">${D.units.length-late.length}</b></div>
+ <div class="k">متأخرة<b class="r">${late.length}</b></div><div class="k">ح/ المتبقي<b>${P(cur)}</b></div>
+ <div class="k">ق/ المتبقي<b>${P(old)}</b></div><div class="k">إجمالي غير المحصّل<b class="r">${P(cur+old)}</b></div></div>
+ ${staff()&&PS?payPanel():''}
+ <div class="card"><h2>حالة السداد التفصيلية لكل شقة</h2>
+ <p>يظهر هنا كل بند، وإجمالي المستحق، والمدفوع، والمتبقي، وحالة السداد. السداد الجزئي يُخصم من المستحق الفعلي للبند.</p>
+ <div class="w"><table><tr><th>البند</th><th>المستحق</th><th>المسدد</th><th>المتبقي</th><th>الحالة</th><th>الإجراء</th></tr>${unitRows}</table></div></div>`;
+};
+V.units=()=>`<div class="card"><h2>الوحدات</h2><input id="q" placeholder="بحث" oninput="const q=this.value;document.querySelectorAll('#ut tr[data-s]').forEach(r=>r.style.display=r.dataset.s.includes(q)?'':'none')"><div class="w"><table id="ut"><tr><th>الوحدة</th><th>المالك</th><th>الجوال</th><th></th></tr>${D.units.map(u=>`<tr data-s="${E(nm(u.id)+u.owner_name+u.phone)}"><td>${nm(u.id)}</td>${staff()?`<td><input id="o${u.id}" value="${E(u.owner_name)}"></td><td><input id="p${u.id}" value="${E(u.phone)}" dir="ltr"></td><td><button onclick="eu('${u.id}')">حفظ</button><button onclick="stm('${u.id}')">كشف</button></td>`:`<td>${E(u.owner_name)}</td><td dir="ltr">${E(u.phone)}</td><td><button onclick="stm('${u.id}')">كشف</button></td>`}</tr>`).join('')}</table></div></div>`;
+async function eu(k){const r=await rpc('fn_edit_unit',{p_id:k,p_owner:$('#o'+k).value,p_phone:$('#p'+k).value});if(r){MSG='تم الحفظ';await go()}}
+function stT(k){const Dd=D.dues.filter(d=>d.unit_id==k),Pp=D.pay.filter(p=>p.unit_id==k);
+ return `<p><b>حالة السداد:</b> <span class="r">✗ لم يسدد</span> — <span style="color:var(--gold);font-weight:bold">◐ سداد جزئي</span> — <span class="ok">✓ سدد بالكامل</span></p><div class="w"><table><tr><th>النوع</th><th>البند</th><th>الفترة</th><th>تاريخ ووقت التسجيل</th><th>المبلغ</th><th>المسدد</th><th>المتبقي</th><th>الحالة</th>${staff()?'<th>سداد</th>':''}${OWN?'<th></th>':''}</tr>${Dd.map(d=>`<tr><td>${d.list=='old'?'ق/':'ح/'}</td><td>${E(d.item)}</td><td>${E(d.period||d.due_date)}</td><td>${d.created_at?T(d.created_at):'—'}</td><td>${P(d.amount)}</td><td>${P(d.paid)}</td><td class="${rem(d)>0?'r':'ok'}">${P(rem(d))}</td><td>${rem(d)<=0?'<span class="ok">✓ سدد بالكامل</span>':d.paid>0?'<span style="color:var(--gold);font-weight:bold">◐ سداد جزئي</span>':'<span class="r">✗ لم يسدد</span>'}</td>${staff()&&rem(d)>0?`<td><button class="p" onclick="selPayItem('${k}',${JSON.stringify(d.item)})">💳 سداد</button></td>`:staff()?'<td>—</td>':''}${OWN?`<td>${obEdit('تعديل مستحق','fn_owner_edit_due',{p_due:d.id},true)}${obDel('مسح المستحق وأي سداد عليه','fn_owner_delete_due',{p_due:d.id})}</td>`:''}</tr>`).join('')}</table></div><p><b>ح/ ${P(bal(k,'current'))} | ق/ ${P(bal(k,'old'))} | إجمالي المتبقي: ${P(owed(k))}</b></p><div class="w"><table><tr><th>تاريخ السداد</th><th>النوع</th><th>المبلغ</th>${OWN?'<th></th>':''}</tr>${Pp.map(p=>`<tr><td>${T(p.paid_at)}</td><td>${p.box=='old'?'ق/':'ح/'}</td><td>${P(p.amount)}</td>${OWN?`<td>${obEdit('تعديل مبلغ تحصيل','fn_owner_edit_payment',{p_id:p.id},false)}${obDel('مسح التحصيل (يرجع المبلغ للمستحق)','fn_owner_delete_payment',{p_id:p.id})}</td>`:''}</tr>`).join('')}</table></div>`}
+function stm(k){const u=D.units.find(x=>x.id==k);OUT=`<h2>برج الباشا لؤلؤة — كشف حساب ${nm(k)}</h2><p>المالك: ${E(u.owner_name)} | طُبع: ${T(new Date())} بواسطة ${E(ME.username)}</p>`+stT(k);draw()}
+V.mine=()=>`<div class="card"><h2>بيانات برج AL BASHA LAOO</h2><p>جميع البيانات للعرض فقط. صلاحيات التعديل والسداد والصرف تظل للمشرف/المدير.</p>${D.units.map(u=>`<div class="card"><h3>${nm(u.id)} — ${E(u.owner_name)}</h3>${stT(u.id)}</div>`).join('')}</div>`;
+const shopsHtml=()=>{const sh=D.units.filter(u=>u.kind=='shop');return sh.length?`<h3>المحلات — لا يُقسَّم عليها شيء (كل محل لوحده؛ اكتب القيمة يدويًا)</h3><div class="w"><table><tr><th>المحل</th><th>المالك</th><th>قيمة ${E(PV.item)} (ج.م)</th></tr>${sh.map(u=>`<tr><td>${nm(u.id)}</td><td>${E(u.owner_name)}</td><td><input id="sh_${u.id}" type="number" min="0" step="0.01" value="0"></td></tr>`).join('')}</table></div>`:''};
+V.dues=()=>`<div class="card"><h2>إصدار مستحقات ح/</h2>
+<select id="di" onchange="PV=null;draw()">${ITEMS.map(x=>`<option>${x}</option>`).join('')}</select>
+<input id="dt" type="number" min="0" step="1" placeholder="الإجمالي بالجنيه">
+<input id="dm" type="month">
+<select id="ds"><option value="">مشترك بالتقسيم التلقائي</option>${D.units.map(u=>`<option value="${u.id}">وحدة محددة: ${nm(u.id)}</option>`).join('')}</select>
+<button onclick="pv()">معاينة التقسيم والاستثناءات</button>
+${PV?`<div class="card"><h3>مراجعة الوحدات قبل التقسيم</h3>
+<p>البند: <b>${E(PV.item)}</b> | الإجمالي المخصص للشقق: <b>${P(PV.t)}</b></p>
+<p>عدد الوحدات المشاركة: <b>${PV.n}</b> | النصيب قبل التقريب: <b>${P(PV.sh)}</b> | بعد التقريب بالزيادة للعشرة: <b>${P(PV.rd)}</b></p>
+<p class="r">ضع علامة استثناء أمام أي شقة غير مسكونة أو غير مشاركة في هذا البند، ثم أعد المعاينة قبل الاعتماد.</p>
+<div class="w"><table><tr><th>الوحدة</th><th>المالك</th><th>المشاركة</th><th>القيمة</th><th>المستحق الحالي الذي سيُرحّل</th></tr>
+${D.units.filter(u=>u.kind=='apartment').map(u=>{
+ const fixed=isEl(PV.item)&&(u.num<4||u.num>38);
+ const ex=PV.ex.includes(u.id);
+ const active=!fixed&&!ex;
+ return `<tr><td>${nm(u.id)}</td><td>${E(u.owner_name)}</td><td><input type="checkbox" class="excBox" value="${u.id}" ${active?'checked':''} ${fixed?'disabled':''} onchange="pvExceptions()"></td><td>${active?P(PV.rd):'0 ج.م'}</td><td>${P(bal(u.id,'current'))}</td></tr>`
+}).join('')}</table></div>
+${PV.s?'':shopsHtml()}
+${PV.cr>0?`<p class="r">عند الاعتماد، المستحقات الحالية غير المسددة للبند نفسه تُرحّل إلى ق/ على نفس الوحدة، ثم يُنشأ المستحق الجديد في ح/.</p>`:''}
+<button class="p" onclick="apv()">اعتماد التقسيم</button></div>`:''}</div>
+<div class="card"><h2>إضافة مستحق قديم ق/ يدويًا</h2><select id="ou">${D.units.map(u=>`<option value="${u.id}">${nm(u.id)}</option>`).join('')}</select><input id="oa" type="number" min="0" step="1" placeholder="المبلغ"><input id="od" type="date"><input id="ow" placeholder="السبب"><button class="p" onclick="addOld()">إضافة</button></div>
+<div class="card"><h2>تعديل مستحق قبل السداد</h2><select onchange="EU=this.value;draw()">${D.units.map(u=>`<option value="${u.id}" ${u.id==EU?'selected':''}>${nm(u.id)} ${E(u.owner_name)}</option>`).join('')}</select><select id="edd">${D.dues.filter(d=>d.unit_id==EU&&d.paid==0).map(d=>`<option value="${d.id}">${d.list=='old'?'ق/':'ح/'} ${E(d.item)} ${E(d.period||'')} — ${P(d.amount)}</option>`).join('')}</select><input id="eda" type="number" min="0.01" step="1" placeholder="المبلغ الجديد"><input id="edr" placeholder="سبب التعديل"><button class="p" onclick="editDue()">تعديل</button></div>
+<div class="card"><p>قواعد التقسيم: الأسانسير على الشقق 4–38 فقط. باقي البنود على الشقق 1–38. المحلان لا يدخلان في التقسيم التلقائي وقيمتهما اليدوية لا تؤثر على الشقق.</p></div>`;
+function pv(){
+ const item=$('#di').value,t=Math.round(+$('#dt').value*100),s=$('#ds').value;
+ if(!(t>0)||!$('#dm').value){MSG='أدخل المبلغ والشهر';draw();return}
+ const all=D.units.filter(u=>u.kind==='apartment');
+ const base=s?all.filter(u=>u.id===s):all.filter(u=>!isEl(item)||(u.num>=4&&u.num<=38));
+ const existing=PV&&PV.item===item?PV.ex:[];
+ const ls=base.filter(u=>!existing.includes(u.id));
+ const n=ls.length;
+ if(!n){MSG='لا توجد وحدات مشاركة في هذا البند';draw();return}
+ const sh=Math.ceil(t/n),rd=s?t:Math.ceil(sh/1000)*1000;
+ const cr=D.dues.filter(d=>d.list==='current'&&d.item===item&&(!s||d.unit_id===s)).reduce((a,d)=>a+rem(d),0);
+ PV={item,t,n,sh,rd,s,m:$('#dm').value,ls,cr,ex:existing};
+ draw()
+}
+function pvExceptions(){
+ if(!PV)return;
+ const selected=[...document.querySelectorAll('.excBox:checked')].map(x=>x.value);
+ const fixed=D.units.filter(u=>u.kind==='apartment'&&isEl(PV.item)&&(u.num<4||u.num>38)).map(u=>u.id);
+ PV.ex=[...new Set([...selected,...fixed])];
+ const base=PV.s?D.units.filter(u=>u.id===PV.s):D.units.filter(u=>u.kind==='apartment'&&(!isEl(PV.item)||(u.num>=4&&u.num<=38)));
+ PV.ls=base.filter(u=>!PV.ex.includes(u.id));PV.n=PV.ls.length;
+ PV.sh=PV.n?Math.ceil(PV.t/PV.n):0;PV.rd=PV.s?PV.t:Math.ceil(PV.sh/1000)*1000;
+ draw()
+}
+async function apv(){
+ if(BUSY||!PV)return;
+ const shops=PV.s?{}:Object.fromEntries(D.units.filter(u=>u.kind==='shop').map(u=>[u.id,Math.round(+($('#sh_'+u.id)?.value||0)*100)]));
+ const exceptions=PV.s?[]:(PV.ex||[]);
+ BUSY=true;
+ const r=await rpc('fn_issue_charge',{p_item:PV.item,p_period:PV.m,p_total:PV.t,p_unit:PV.s||null,p_exceptions:exceptions,p_shops:shops});
+ BUSY=false;
+ if(r){if(r.d?.denied)MSG='غير مصرح — تم تسجيل المحاولة';else{MSG='تم الاعتماد'+(r.d?.carried?' — وتم ترحيل '+r.d.carried+' بند من ح/ إلى ق/':'');PV=null}await go()}}
+async function editDue(){if(BUSY)return;const d=$('#edd').value,a=Math.round(+$('#eda').value*100),w=$('#edr').value.trim();if(!d||!(a>0)||!w){MSG='اختر المستحق وأدخل المبلغ الجديد والسبب';draw();return}
+ BUSY=true;const r=await rpc('fn_edit_due',{p_due:d,p_amount:a,p_reason:w});BUSY=false;if(r){MSG=r.d==null?'غير مصرح — تم تسجيل المحاولة':'تم تعديل المستحق';await go()}}
+async function addOld(){const a=Math.round(+$('#oa').value*100);if(!(a>0))return;const r=await rpc('fn_add_old',{p_unit:$('#ou').value,p_amount:a,p_date:$('#od').value||null,p_reason:$('#ow').value});if(r){MSG='تمت الإضافة';await go()}}
+V.pay=()=>{const col=D.pay.reduce((a,p)=>a+p.amount,0);return `<div class="card"><h2>إجمالي المحصّل</h2><div class="k"><b style="font-size:1.8em">${P(col)}</b></div><p>من مستحقات ح/ وق/، ويتجمع تلقائيًا مع كل سداد.${staff()?' للتسديد اضغط «سداد» جنب الوحدة في لوحة التحكم.':''}</p></div>`};
+V.exp=()=>`<div class="card"><h2>صندوق الصرف</h2><p>الرصيد المتاح: <b>${P(D.cash)}</b></p>${staff()?`<input id="ea" type="number" min="0" step="0.01" placeholder="المبلغ"><input id="ew" placeholder="سبب الصرف"><input id="ei" placeholder="البند"><input id="eb" placeholder="المستفيد"><input id="en" placeholder="ملاحظات"><label>📷 الفواتير (يمكن اختيار أكثر من صورة) <input id="ef" type="file" accept="image/*,.pdf" capture="environment" multiple></label>${admin()?'<label><input type="checkbox" id="ex"> استثناء (رصيد غير كاف)</label><input id="ra" type="password" placeholder="كلمة مرورك للتأكيد">':''}<button class="p" id="eb2" onclick="doExp()">تسجيل</button>`:''}</div>
+${admin()?`<div class="card"><h2>الرصيد الافتتاحي / تسوية</h2><input id="oa2" type="number" step="0.01" placeholder="المبلغ"><input id="or" placeholder="السبب"><button onclick="opening()">حفظ</button></div>`:''}
+${OWN?adjCard():''}<div class="card"><div class="w"><table><tr><th>رقم</th><th>التاريخ</th><th>المبلغ</th><th>السبب</th><th>ملاحظات</th><th>المستفيد</th><th>فاتورة</th>${OWN?'<th></th>':''}</tr>${D.exp.map(e=>`<tr><td>${e.expense_no}</td><td>${T(e.spent_at)}</td><td>${P(e.amount)}</td><td>${E(e.reason)}</td><td>${E(e.note)}</td><td>${E(e.beneficiary)}</td><td>${e.invoice_path?`<button onclick="inv('${E(e.invoice_path)}')">📷</button>`:''}</td>${OWN?`<td>${obEdit('تعديل مصروف','fn_owner_edit_expense',{p_id:e.id},true)}${obDel('مسح مصروف','fn_owner_delete_expense',{p_id:e.id})}</td>`:''}</tr>`).join('')}</table></div></div>`;
+async function doExp(){if(BUSY)return;const a=Math.round(+$('#ea').value*100);if(!(a>0)||!$('#ew').value){MSG='أكمل البيانات';draw();return}
+ const ex=!!$('#ex')?.checked;if(ex&&!await reauth()){MSG='كلمة المرور غير صحيحة';draw();return}
+ BUSY=true;let paths=[];const files=[...($('#ef')?.files||[])];
+ for(let i=0;i<files.length;i++){
+   const f=files[i];const ext=((f.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg');
+   const path=IDEM+'_'+(i+1)+'.'+ext;
+   const{error}=await sb.storage.from('invoices').upload(path,f,{contentType:f.type||'application/octet-stream'});
+   if(error&&!/exist|duplicate/i.test(error.message)){BUSY=false;MSG='تعذر رفع إحدى الفواتير: '+error.message;draw();return}
+   paths.push(path);
+ }
+ const path=paths.join(',');
+ const r=await rpc('fn_expense',{p_amount:a,p_reason:$('#ew').value,p_category:$('#ei').value,p_who:$('#eb').value,p_idem:IDEM,p_exception:ex,p_note:$('#en').value||null,p_invoice:path});BUSY=false;
+ if(r){if(r.d==null)MSG='غير مصرح — تم تسجيل المحاولة';else{IDEM=crypto.randomUUID();MSG='تم التسجيل'}await go()}}
+async function inv(p){
+ const paths=String(p||'').split(',').map(x=>x.trim()).filter(Boolean);
+ if(!paths.length){MSG='لا توجد فاتورة مرفقة';draw();return}
+ for(const path of paths){
+   const{data,error}=await sb.storage.from('invoices').createSignedUrl(path,300);
+   if(error){MSG='تعذر فتح إحدى الفواتير: '+error.message;draw();return}
+   window.open(data.signedUrl,'_blank')
+ }
+}
+async function opening(){if(!await reauth()){MSG='أدخل كلمة مرورك في خانة التأكيد بشاشة المصروفات';draw();return}const r=await rpc('fn_set_opening',{p_amount:Math.round(+$('#oa2').value*100),p_reason:$('#or').value});if(r){MSG='تم';await go()}}
+V.notes=()=>`<div class="card"><h2>الملاحظات</h2><textarea id="nt" rows="3" placeholder="نص الملاحظة"></textarea>${staff()?'<label><input type="checkbox" id="ng"> إعلان عام</label>':''}<button class="p" onclick="note()">إرسال</button></div>`+D.notes.filter(n=>!n.hidden||staff()).map(n=>`<div class="card"><b>${E(n.author_name)}</b> ${n.is_public?'(إعلان عام)':nm(n.unit_id)} — ${T(n.created_at)}${n.hidden?' (مخفية)':''}<p>${E(n.body)}</p>${admin()&&!n.hidden?`<button onclick="hide('${n.id}')">إخفاء</button>`:''}${obDel('مسح ملاحظة','fn_owner_delete_note',{p_id:n.id})}</div>`).join('');
+async function note(){const b=$('#nt').value.trim();if(!b)return;const pub=!!$('#ng')?.checked;const{error}=await sb.from('notes').insert({body:b,is_public:pub,unit_id:pub?null:(ME.unit_id||null),author_name:ME.username});if(error)MSG='خطأ: '+error.message;else MSG='تم الإرسال';await go()}
+async function hide(id){const r=await rpc('fn_hide_note',{p_id:id});if(r)await go()}
+V.log=()=>`<div class="card"><h2>سجل التدقيق</h2>${OWN?`<button onclick='askDel("مسح السجل كله","fn_owner_clear_log",{})'>🗑 مسح السجل كله</button>`:''}<div class="w"><table><tr><th>الوقت</th><th>المستخدم</th><th>العملية</th><th>التفاصيل</th>${OWN?'<th></th>':''}</tr>${D.log.map(l=>`<tr><td>${T(l.at)}</td><td>${l.actor_role=='admin'?'🦁 ':''}${E(l.actor_name)}</td><td>${E(l.action)}</td><td dir="ltr">${E(JSON.stringify(l.detail))}</td>${OWN?`<td>${obDel('مسح سطر من السجل','fn_owner_delete_log',{p_id:l.id})}</td>`:''}</tr>`).join('')}</table></div></div><div class="card"><h2>فروق التقريب</h2>${D.rnd.map(r=>`<p>${E(r.period)} ${E(r.item)}: ${P(r.amount)} ${obDel('مسح فرق تقريب','fn_owner_delete_rounding',{p_id:r.id})}</p>`).join('')||'—'}</div>`;
+V.alert=()=>`<div class="card"><h2>🚨 إنذار</h2>${D.alerts.length?`<div class="w"><table><tr><th>الوحدة</th><th>عدد المحاولات</th><th>آخر محاولة</th><th>النوع</th><th>الحالة</th><th></th></tr>${D.alerts.map(a=>`<tr><td>${nm(a.unit_id)}</td><td>${a.attempts}</td><td>${T(a.last_at)}</td><td>${E(a.kind)}</td><td>${a.dismissed?'مُغلق':'<span class="r">مفتوح</span>'}</td><td>${admin()&&!a.dismissed?`<button onclick="dis('${a.id}')">إقفال</button>`:''}${obDel('مسح إنذار','fn_owner_delete_alert',{p_id:a.id})}</td></tr>`).join('')}</table></div>`:'<p class="ok">لا توجد محاولات تلاعب مسجلة ✓</p>'}</div>`;
+async function dis(id){const r=await rpc('fn_dismiss_alert',{p_id:id});if(r)await go()}
+V.acc=()=>`<div class="card"><h2>الحسابات</h2><p>إنشاء حسابات الشقق والمحلات التي ليس لها حساب بعد (كلمات مرور عشوائية تظهر مرة واحدة).</p><button class="p" onclick="mk({})">إنشاء حسابات الوحدات</button><br><input id="su" placeholder="اسم مشرف جديد" dir="ltr"><button onclick="mk({supervisor:$('#su').value.trim()})">إنشاء مشرف</button></div>`;
+async function mk(b){const{data,error}=await sb.functions.invoke('bright-action',{body:b});if(error||data?.error){MSG='خطأ: '+(data?.error||error.message);draw();return}
+ OUT='<h2>كلمات المرور المؤقتة (تظهر مرة واحدة)</h2><table><tr><th>المستخدم</th><th>كلمة المرور</th></tr>'+(data.created||[]).map(x=>`<tr><td dir="ltr">${E(x.user)}</td><td dir="ltr">${E(x.password)}</td></tr>`).join('')+'</table>';draw()}
+init();
+</script></body></html>
