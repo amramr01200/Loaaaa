@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ELBSHA LAOO</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{--ink:#17130b;--bg:#0e0c08;--card:#1a1710;--tx:#f4ecd6;--mut:#a89a78;--gold:#d4a935;--gold2:#f1d27a;--ok:#3fb37f;--bad:#e5584a;--part:#e8923a;--ln:#352e1d}
+*{box-sizing:border-box}
+body{margin:0;font-family:Cairo,system-ui,sans-serif;background:var(--bg);color:var(--tx);padding-bottom:84px}
+header{background:linear-gradient(180deg,#221b0d,#14100a);border-bottom:2px solid var(--gold);color:var(--gold2);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+header b{font-size:18px}header button{background:#ffffff22;color:#fff;border:0;border-radius:8px;padding:6px 10px;font:inherit;margin-inline-start:4px}
+.fund{background:linear-gradient(180deg,#14100a,#1d1709);color:#f4ecd6;padding:2px 16px 22px}
+.fund small{opacity:.7}.fund .n{font-size:40px;font-weight:800;color:var(--gold2);line-height:1.1}
+.fund .r{display:flex;gap:18px;font-size:13px;opacity:.85;margin-top:4px}
+main{padding:14px;max-width:900px;margin:auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:10px}
+.door{background:var(--card);border:2px solid var(--ln);border-radius:46px 46px 8px 8px;padding:12px 4px 8px;text-align:center;cursor:pointer;font:inherit;color:inherit}
+.door b{display:block;font-size:18px}.door span{font-size:22px}.door small{display:block;color:var(--mut);font-size:11px}
+.door.ok{border-color:var(--ok)}.door.bad{border-color:var(--bad)}.door.part{border-color:var(--part)}
+.card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;border:1px solid var(--ln);box-shadow:0 0 0 1px #d4a93510}
+.row{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid var(--ln);font-size:14px}.row:last-child{border:0}
+nav{position:fixed;bottom:0;inset-inline:0;background:var(--card);border-top:1px solid var(--ln);display:flex;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;border:0;background:none;padding:10px 2px;font:inherit;font-size:12px;color:var(--mut)}nav button.on{color:var(--gold2);font-weight:800;box-shadow:inset 0 3px var(--gold)}
+nav button i{display:block;font-style:normal;font-size:20px}
+input,select,textarea{font:inherit;width:100%;padding:10px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx);margin:4px 0}
+.btn{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#1a1405;border:0;border-radius:10px;padding:11px 16px;font:inherit;font-weight:600;width:100%;margin-top:6px}.btn.g{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#1a1405}.btn.l{background:none;color:var(--gold2);border:1px solid var(--gold)}.btn:disabled{opacity:.4}
+.sheet{position:fixed;inset:0;background:#0009;display:flex;align-items:flex-end;z-index:9}
+.sheet>div{background:var(--card);width:100%;max-height:90vh;overflow:auto;border-radius:20px 20px 0 0;padding:16px;max-width:700px;margin:auto}
+.bad{color:var(--bad)}.ok{color:var(--ok)}.part{color:var(--part)}.mut{color:var(--mut);font-size:12px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ov{display:grid;grid-template-columns:60px 1fr;align-items:center;gap:6px}
+#login{max-width:340px;margin:10vh auto;padding:20px;text-align:center;border:1px solid var(--gold)}#login h2{margin:8px 0 14px;color:var(--gold2);letter-spacing:1px}.brand{display:flex;align-items:center;gap:8px;letter-spacing:.5px}
+@media print{:root{--bg:#fff;--card:#fff;--tx:#000;--mut:#555;--ln:#ccc}header,.fund{background:#fff!important;color:#000!important}nav,header button,.btn,.sheet{display:none!important}body{background:#fff;color:#000}.card,.door{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* ===== الإعداد: ضع بيانات مشروعك من Supabase > Project Settings > API ===== */
+const SB_URL='https://xegqwkeakloojpnkhfhl.supabase.co', SB_KEY='sb_publishable_79_NasLOkOCuWDydvu08Gw_Rwde2xgQ';
+const sb=supabase.createClient(SB_URL,SB_KEY);
+const ICON={admin:'🦁',supervisor:'🐪',owner:''};
+const ITEMS=['مياه','كهرباء','صيانة','كهرباء الأسانسير','صيانة الأسانسير','حارس','تصالح'];
+const ELEV=['A1','A2','A3'];            // مستثناة دائماً من بندي الأسانسير
+const TABLES=['units','statements','items','charges','payments','expenses','notes','log'];
+const LOGO=(z=28)=>`<svg width="${z}" height="${z}" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M16 2.5 6.5 9v20.5h19V9z" stroke="#d4a935" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 29.5v-6a4 4 0 0 1 8 0v6" stroke="#f1d27a" stroke-width="1.6"/><g fill="#f1d27a"><rect x="10" y="11" width="3" height="3" rx=".6"/><rect x="19" y="11" width="3" height="3" rx=".6"/><rect x="10" y="16" width="3" height="3" rx=".6"/><rect x="19" y="16" width="3" height="3" rx=".6"/></g></svg>`;
+let me,db={},tab='dues',$=s=>document.querySelector(s);
+const fmt=n=>Number(n||0).toLocaleString('ar-EG');
+const staff=()=>me.role!=='owner';
+const dt=d=>new Date(d).toLocaleString('ar-EG',{dateStyle:'short',timeStyle:'short'});
+
+async function load(){for(const t of TABLES){const {data}=await sb.from(t).select('*').order(t==='units'?'code':'id');db[t]=data||[]}
+ db.units.sort((a,b)=>(a.kind==='shop')-(b.kind==='shop')||a.code.localeCompare(b.code,'en',{numeric:true}))}
+async function lg(action){await sb.from('log').insert({action,by_name:me.username,role:me.role})}
+
+/* ===== الحسابات ===== */
+const paid=c=>db.payments.filter(p=>p.charge_id===c.id).reduce((s,p)=>s+Number(p.amount),0);
+const left=c=>Number(c.amount)-paid(c);
+const stCur=()=>db.statements.filter(x=>!x.opening).at(-1);
+const curId=()=>stCur()?.id;
+const isOp=c=>db.statements.find(x=>x.id===c.statement_id)?.opening?0:1;
+function stat(code){const cs=db.charges.filter(c=>c.unit===code);
+ const cur=cs.filter(c=>c.statement_id===curId()).reduce((s,c)=>s+left(c),0);
+ const bef=cs.filter(c=>c.statement_id!==curId()).reduce((s,c)=>s+left(c),0);
+ const tot=cs.reduce((s,c)=>s+Number(c.amount),0),pd=cs.reduce((s,c)=>s+paid(c),0);
+ return{cur,bef,all:cur+bef,tot,pd,state:!cs.length?'':cur+bef<=0?'ok':pd>0?'part':'bad'}}
+const income=()=>db.payments.reduce((s,p)=>s+Number(p.amount),0);
+const spent=()=>db.expenses.reduce((s,e)=>s+Number(e.amount),0);
+
+/* تقسيم متساوٍ على الشقق فقط، الاستثناء=0، المبلغ الثابت يُخصم قبل التقسيم، تقريب لأعلى 10 */
+function split(total,ov){let fixed=0,n=0,res={};
+ db.units.forEach(u=>{const v=ov[u.code];
+  if(v==='x'||v===0){res[u.code]=0}else if(v>0){res[u.code]=v;fixed+=v}
+  else if(u.kind==='apt')n++;else res[u.code]=0});
+ const rest=Math.max(total-fixed,0),share=n?Math.ceil(rest/n/10)*10:0;
+ db.units.forEach(u=>{if(res[u.code]===undefined)res[u.code]=share});
+ const ex=Object.values(ov).filter(v=>v===0||v==='x').length;
+ return{res,share,n,fixed,ex,over:fixed>total,surplus:share*n-rest}}
+
+/* ===== الشاشات ===== */
+function shell(body){const bal=income()-spent();
+ $('#app').innerHTML=`<header><b class="brand">${LOGO(30)} ELBSHA LAOO</b><span>${ICON[me.role]} ${me.username}<button onclick="window.print()">طباعة / PDF</button><button onclick="out()">خروج</button></span></header>
+ <div class="fund"><small>رصيد الصندوق</small><div class="n">${fmt(bal)} ج</div><div class="r"><span>تحصيل ${fmt(income())}</span><span>صرف ${fmt(spent())}</span></div></div>
+ <main>${body}</main>
+ <nav>${[['dues','📋','المستحقات'],['fund','💰','الصندوق'],['spend','🧾','الصرف'],['log','🕓','السجل'],['notes','📝','ملاحظات']].map(([k,i,l])=>`<button class="${tab===k?'on':''}" onclick="tab='${k}';render()"><i>${i}</i>${l}</button>`).join('')}</nav>`}
+
+function render(){({dues:vDues,fund:vFund,spend:vSpend,log:vLog,notes:vNotes})[tab]()}
+
+function vDues(){const st=stCur();
+ const tiles=db.units.map(u=>{const s=stat(u.code);const ic={ok:'✅',bad:'❌',part:'🟠','':'▫️'}[s.state];
+  return`<button class="door ${s.state}" onclick="openUnit('${u.code}')"><b>${u.code}</b><span>${ic}</span><small>${s.all>0?fmt(s.all)+' ج':'—'}</small></button>`}).join('');
+ shell(`${staff()?`<div class="two"><button class="btn" onclick="newStmt()">بيان جديد</button><button class="btn g" onclick="newItem()" ${!st||st.locked?'disabled':''}>إضافة بند</button></div>${st?`<button class="btn l" onclick="manageItems()">إدارة البنود</button>`:''}${me.role==='admin'?`<button class="btn l" onclick="openingView()">الأرصدة السابقة (قبل)</button>`:''}`:''}
+ <p class="mut">${st?`البيان الحالي: ${st.title} ${st.locked?'🔒 مقفل (بدأ التحصيل)':''}`:'لا يوجد بيان بعد'} — اضغط على الشقة للتفاصيل. الزوم بالأصابع مفعّل.</p><div class="grid">${tiles}</div>`)}
+
+function openUnit(code){const u=db.units.find(x=>x.code===code),s=stat(code);
+ const cs=db.charges.filter(c=>c.unit===code&&left(c)!==0||c.unit===code&&c.statement_id===curId());
+ sheet(`<h3>${u.code} ${u.kind==='shop'?'(محل)':''}</h3>
+ <div class="mut">${u.owner_name||'—'} ${u.phone?`· <a href="tel:${u.phone}">${u.phone}</a>`:''}</div>
+ ${staff()?`<button class="btn l" onclick="editOwner('${code}')">تعديل المالك والتليفون</button>`:''}
+ <div class="card"><div class="row"><span><b>المجموع الكلي للشقة</b></span><b>${fmt(s.tot)}</b></div><div class="row"><span>قبل</span><b class="${s.bef>0?'bad':''}">${fmt(s.bef)}</b></div><div class="row"><span>حالي</span><b>${fmt(s.cur)}</b></div><div class="row"><span>إجمالي المقصّر</span><b class="bad">${fmt(s.all)}</b></div><div class="row"><span>المسدد</span><b class="ok">${fmt(s.pd)}</b></div></div>
+ ${cs.map(c=>`<div class="row"><span>${c.item} ${c.statement_id===curId()?'':'<small class=mut>(قبل)</small>'}${c.reason?`<br><small class="mut">السبب: ${c.reason}</small>`:''}</span><span>${fmt(c.amount)} / مسدد ${fmt(paid(c))} / <b class="${left(c)>0?'bad':'ok'}">متبقي ${fmt(left(c))}</b></span></div>`).join('')}
+ ${staff()&&s.all>0?`<input id="amt" type="number" inputmode="decimal" placeholder="المبلغ المسدد كاش"><button class="btn" onclick="collect('${code}')">تسجيل تحصيل</button>`:''}
+ ${me.role==='admin'&&s.pd>0?`<button class="btn l" onclick="reverse('${code}')">عكس دفعة (بسبب)</button>`:''}
+ <h4>الدفعات</h4>${db.payments.filter(p=>p.unit===code).map(p=>`<div class="row"><span>${dt(p.created_at)} ${ICON[p.role]||''}</span><b class="${p.amount<0?'bad':'ok'}">${fmt(p.amount)}</b></div>`).join('')||'<p class="mut">لا دفعات</p>'}
+ <button class="btn l" onclick="closeSheet()">إغلاق</button>`)}
+
+async function collect(code){let a=+$('#amt').value;if(!(a>0))return alert('أدخل مبلغاً صحيحاً');
+ const cs=db.charges.filter(c=>c.unit===code&&left(c)>0).sort((x,y)=>isOp(x)-isOp(y)||x.id-y.id),rows=[];
+ for(const c of cs){if(a<=0)break;const t=Math.min(a,left(c));rows.push({charge_id:c.id,unit:code,amount:t,by_name:me.username,role:me.role});a-=t}
+ if(a>0)alert('المبلغ أكبر من المطلوب، سُجّل المطلوب فقط');
+ const{error}=await sb.from('payments').insert(rows);if(error)return alert(error.message);
+ await lg(`تحصيل ${fmt(rows.reduce((s,r)=>s+r.amount,0))} ج من ${code}`);await load();closeSheet();render()}
+
+async function reverse(code){const r=prompt('سبب العكس (إجباري):');if(!r)return;const a=+prompt('المبلغ المراد عكسه:');if(!(a>0))return;
+ const c=db.charges.filter(c=>c.unit===code&&paid(c)>=a).at(-1);if(!c)return alert('لا يوجد بند مسدد بهذا المبلغ');
+ const{error}=await sb.from('payments').insert({charge_id:c.id,unit:code,amount:-a,note:r,by_name:me.username,role:me.role});if(error)return alert(error.message);
+ await lg(`عكس سداد ${fmt(a)} ج من ${code} — ${r}`);await load();closeSheet();render()}
+
+async function newStmt(){const t=prompt('عنوان البيان (مثال: نوفمبر 2026):');if(!t)return;
+ const{error}=await sb.from('statements').insert({title:t});if(error)return alert(error.message);await lg(`بيان جديد: ${t} (المتبقي من السابق صار "قبل")`);await load();render()}
+
+function newItem(){sheet(`<h3>إضافة بند</h3><select id="it">${ITEMS.map(i=>`<option>${i}</option>`).join('')}<option value="_">بند آخر…</option></select>
+ <input id="itx" placeholder="اسم البند (إن اخترت: بند آخر)"><input id="tot" type="number" inputmode="decimal" placeholder="إجمالي المبلغ" oninput="prev()">
+ <p class="mut">بجانب كل وحدة: اتركها فارغة = تقسيم عادي · <b>0</b> أو <b>x</b> = استثناء · رقم = مبلغ ثابت يُخصم قبل التقسيم · أي تغيير عن الاستثناء الافتراضي (المحلات، وشقق 1 و2 و3 في الأسانسير) يلزمه <b>سبب</b></p>
+ <div class="two" id="ovs"></div><div class="card" id="pv">—</div>
+ <button class="btn" onclick="saveItem()">اعتماد التقسيم</button><button class="btn l" onclick="closeSheet()">إلغاء</button>`);
+ $('#it').onchange=fillOv;fillOv()}
+function defOv(code,el){const u=db.units.find(x=>x.code===code);return u.kind==='shop'||(el&&ELEV.includes(code))?0:undefined}
+function needR(code){const el=$('#it').value.includes('الأسانسير');return ovs()[code]!==defOv(code,el)}
+function fillOv(){const el=$('#it').value.includes('الأسانسير');
+ $('#ovs').innerHTML=db.units.map(u=>{const d=defOv(u.code,el)===0?'0':'';return`<div class="ov"><b>${u.code}</b><input data-u="${u.code}" value="${d}" oninput="prev()" inputmode="decimal"><input data-r="${u.code}" placeholder="السبب (إجباري)" style="grid-column:1/-1;display:none"></div>`}).join('');prev()}
+function ovs(){const o={};document.querySelectorAll('[data-u]').forEach(i=>{const v=i.value.trim().toLowerCase();if(v==='')return;o[i.dataset.u]=v==='x'||+v===0?0:+v});return o}
+function prev(){document.querySelectorAll('[data-r]').forEach(i=>{i.style.display=needR(i.dataset.r)?'':'none'});const t=+$('#tot').value||0,r=split(t,ovs());$('#pv').innerHTML=`${r.over?'<b class="bad">⚠️ المبالغ الثابتة أكبر من الإجمالي</b><br>':''}<span class="mut">المبالغ الثابتة المخصومة قبل التقسيم: ${fmt(r.fixed)} ج · وحدات بصفر: ${r.ex}</span><br>الحصة لكل شقة: <b>${fmt(r.share)} ج</b> على ${r.n} شقة<br><span class="mut">فائض التقريب: ${fmt(r.surplus)} ج</span>`}
+async function saveItem(){const t=+$('#tot').value;if(!(t>0))return alert('أدخل الإجمالي');
+ const name=$('#it').value==='_'?$('#itx').value.trim():$('#it').value;if(!name)return alert('اكتب اسم البند');
+ const rs={};for(const u of db.units){if(needR(u.code)){const v=document.querySelector(`[data-r="${u.code}"]`).value.trim();if(!v)return alert(`اكتب سبب الاستثناء للوحدة ${u.code}`);rs[u.code]=v}}
+ const r=split(t,ovs()),sid=curId();
+ const ins=await sb.from('items').insert({statement_id:sid,item:name,total:t,surplus:r.surplus}).select().single();
+ let e=ins.error;
+ if(!e)e=(await sb.from('charges').insert(db.units.map(u=>({statement_id:sid,item_id:ins.data.id,unit:u.code,item:name,amount:r.res[u.code],reason:rs[u.code]||null})))).error;
+ if(e)return alert(e.message+' — إن بقي بند ناقص احذفه من إدارة البنود');
+ const ex=Object.entries(rs).map(([k,v])=>`${k}: ${v}`).join(' | ');
+ await lg(`تقسيم ${name} إجمالي ${fmt(t)} ← ${fmt(r.share)} ج للشقة${ex?' — استثناءات: '+ex:''}`);await load();closeSheet();render()}
+
+function openingView(){const os=db.statements.find(x=>x.opening),oi=os?db.items.find(i=>i.statement_id===os.id):null,lk=!!(oi&&oi.locked),cur={};
+ if(os)db.charges.filter(c=>c.statement_id===os.id).forEach(c=>cur[c.unit]=c.amount);
+ sheet(`<h3>الأرصدة السابقة (قبل)</h3><p class="mut">اكتب المبلغ المتأخر على كل وحدة قبل بدء التطبيق. يظهر في خانة "قبل"، ويُحصَّل، ويدخل الصندوق. ${lk?'🔒 بدأ التحصيل منها فلا يمكن تعديلها.':'يمكن إعادة الحفظ لتصحيحها قبل أول سداد، مع كتابة السبب.'}</p>
+ <div class="two">${db.units.map(u=>`<div class="ov"><b>${u.code}</b><input data-o="${u.code}" type="number" inputmode="decimal" value="${cur[u.code]||''}" ${lk?'disabled':''} oninput="opTot()"></div>`).join('')}</div>
+ <div class="card">الإجمالي: <b id="optot">0</b> ج</div>
+ ${lk?'':`<input id="opr" placeholder="السبب (إجباري) مثال: رصيد مرحّل من الدفتر القديم"><button class="btn" onclick="saveOpening()">حفظ الأرصدة السابقة</button>`}
+ <button class="btn l" onclick="closeSheet()">إغلاق</button>`);opTot()}
+function opTot(){let t=0;document.querySelectorAll('[data-o]').forEach(i=>t+=+i.value||0);$('#optot').textContent=fmt(t)}
+async function saveOpening(){const r=$('#opr').value.trim();if(!r)return alert('اكتب السبب');const a={};let bad=false;
+ document.querySelectorAll('[data-o]').forEach(i=>{const v=+i.value;if(i.value!==''&&(isNaN(v)||v<0))bad=true;if(v>0)a[i.dataset.o]=v});
+ if(bad)return alert('أدخل أرقاماً صحيحة (صفر أو أكبر)');
+ if(!Object.keys(a).length&&!confirm('لا أرصدة مدخلة، سيُمسح أي رصيد سابق محفوظ. متابعة؟'))return;
+ const{error}=await sb.rpc('set_opening',{p_amounts:a,p_reason:r});if(error)return alert(error.message);await load();closeSheet();render()}
+
+function manageItems(){const its=db.items.filter(i=>i.statement_id===curId());
+ sheet(`<h3>إدارة بنود البيان الحالي</h3><p class="mut">الحذف متاح قبل أول سداد فقط ويلزمه سبب. للتعديل: احذف البند ثم أدخله من جديد.</p>${its.map(i=>`<div class="row"><span>${i.item}<br><small class="mut">${fmt(i.total)} ج</small></span>${i.locked?'<span>🔒 مسدد</span>':`<button class="btn l" style="width:auto" onclick="delItem(${i.id})">حذف</button>`}</div>`).join('')||'<p class="mut">لا بنود</p>'}<button class="btn l" onclick="closeSheet()">إغلاق</button>`)}
+async function delItem(id){const r=prompt('سبب الحذف (إجباري):');if(!r||!r.trim())return;const{error}=await sb.rpc('delete_item',{p_item:id,p_reason:r.trim()});if(error)return alert(error.message);await load();closeSheet();render()}
+
+function vFund(){const inc=db.payments.slice().reverse().map(p=>`<div class="row"><span>${p.unit} ${ICON[p.role]||''}<br><small class="mut">${dt(p.created_at)}</small></span><b class="${p.amount<0?'bad':'ok'}">${fmt(p.amount)}</b></div>`).join('');
+ const sur=db.items.reduce((s,i)=>s+Number(i.surplus),0);
+ shell(`<div class="card"><div class="row"><span>إجمالي التحصيل</span><b class="ok">${fmt(income())}</b></div><div class="row"><span>إجمالي الصرف</span><b class="bad">${fmt(spent())}</b></div><div class="row"><span>الرصيد</span><b>${fmt(income()-spent())}</b></div><div class="row"><span>فائض التقريب المعلن (ضمن التحصيل)</span><b>${fmt(sur)}</b></div></div><div class="card"><h4>حركات التحصيل</h4>${inc||'<p class="mut">لا حركات</p>'}</div>`)}
+
+function vSpend(){shell(`${staff()?`<div class="card"><input id="ea" type="number" inputmode="decimal" placeholder="المبلغ"><input id="er" placeholder="السبب (إجباري)"><input id="ef" type="file" accept="image/*" capture="environment"><button class="btn" onclick="addSpend()">تسجيل صرف</button></div>`:''}
+ <div class="card">${db.expenses.slice().reverse().map(e=>`<div class="row"><span>${e.reason} ${ICON[e.role]||''}<br><small class="mut">${dt(e.created_at)} ${e.photo_url?`· <a href="${e.photo_url}" target="_blank">الفاتورة</a>`:''}</small></span><b class="bad">${fmt(e.amount)}</b></div>`).join('')||'<p class="mut">لا مصروفات</p>'}</div>`)}
+async function addSpend(){const a=+$('#ea').value,r=$('#er').value.trim();if(!(a>0)||!r)return alert('المبلغ والسبب إجباريان');
+ if(a>income()-spent()&&!confirm('المبلغ أكبر من رصيد الصندوق، متابعة؟'))return;
+ let url=null,f=$('#ef').files[0];
+ if(f){const p=`${Date.now()}_${f.name.replace(/[^\w.]/g,'')}`;const{error}=await sb.storage.from('receipts').upload(p,f);if(!error)url=sb.storage.from('receipts').getPublicUrl(p).data.publicUrl}
+ const{error}=await sb.from('expenses').insert({amount:a,reason:r,photo_url:url,by_name:me.username,role:me.role});if(error)return alert(error.message);
+ await lg(`صرف ${fmt(a)} ج — ${r}`);await load();render()}
+
+function vLog(){shell(`<div class="card">${db.log.slice().reverse().map(l=>`<div class="row"><span>${ICON[l.role]||''} ${l.by_name}: ${l.action}</span><small class="mut">${dt(l.created_at)}</small></div>`).join('')||'<p class="mut">لا حركات</p>'}</div>`)}
+function vNotes(){shell(`${staff()?`<div class="card"><textarea id="nb" rows="2" placeholder="اكتب ملاحظة يراها الجميع"></textarea><button class="btn" onclick="addNote()">نشر</button></div>`:''}<div class="card">${db.notes.slice().reverse().map(n=>`<div class="row"><span>${ICON[n.role]} ${n.body}</span><small class="mut">${dt(n.created_at)}</small></div>`).join('')||'<p class="mut">لا ملاحظات</p>'}</div>`)}
+async function addNote(){const b=$('#nb').value.trim();if(!b)return;await sb.from('notes').insert({body:b,by_name:me.username,role:me.role});await lg('ملاحظة جديدة');await load();render()}
+
+async function editOwner(code){const n=prompt('اسم المالك:');if(n===null)return;const p=prompt('رقم التليفون:');
+ const{error}=await sb.from('units').update({owner_name:n,phone:p||''}).eq('code',code);if(error)return alert(error.message);await lg(`تحديث بيانات ${code}`);await load();closeSheet();render()}
+
+function sheet(h){closeSheet();const d=document.createElement('div');d.className='sheet';d.id='sh';d.innerHTML=`<div>${h}</div>`;d.onclick=e=>{if(e.target===d)closeSheet()};document.body.appendChild(d)}
+function closeSheet(){$('#sh')?.remove()}
+
+/* ===== الدخول ===== */
+function loginView(){$('#app').innerHTML=`<div id="login" class="card">${LOGO(54)}<h2>ELBSHA LAOO</h2><input id="u" placeholder="اسم المستخدم (مثال: A1)" autocapitalize="off"><input id="p" type="password" placeholder="كلمة المرور"><button class="btn" onclick="doLogin()">دخول</button></div>`}
+async function doLogin(){const{error}=await sb.auth.signInWithPassword({email:`${$('#u').value.trim().toLowerCase()}@bldg.app`,password:$('#p').value});if(error)return alert('بيانات الدخول غير صحيحة');start()}
+async function out(){await sb.auth.signOut();loginView()}
+async function start(){const{data:{user}}=await sb.auth.getUser();if(!user)return loginView();
+ const{data}=await sb.from('profiles').select('*').eq('id',user.id).single();if(!data)return alert('الحساب غير مربوط بصلاحية'),loginView();
+ me=data;await load();render()}
+start();
+</script>
+</body>
+</html>
