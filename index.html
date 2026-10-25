@@ -4,13 +4,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ELBSHA LAOO</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#17130b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ELBSHA LAOO">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
 :root{--ink:#17130b;--bg:#0e0c08;--card:#1a1710;--tx:#f4ecd6;--mut:#a89a78;--gold:#d4a935;--gold2:#f1d27a;--ok:#3fb37f;--bad:#e5584a;--part:#e8923a;--ln:#352e1d}
 *{box-sizing:border-box}
 body{margin:0;font-family:Cairo,system-ui,sans-serif;background:var(--bg);color:var(--tx);padding-bottom:84px}
-header{background:linear-gradient(180deg,#221b0d,#14100a);border-bottom:2px solid var(--gold);color:var(--gold2);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+header{background:linear-gradient(180deg,#221b0d,#14100a);border-bottom:2px solid var(--gold);color:var(--gold2);padding:calc(14px + env(safe-area-inset-top,0px)) 16px 14px;display:flex;justify-content:space-between;align-items:center;gap:8px}
 header b{font-size:18px}header button{background:#ffffff22;color:#fff;border:0;border-radius:8px;padding:6px 10px;font:inherit;margin-inline-start:4px}
 .fund{background:linear-gradient(180deg,#14100a,#1d1709);color:#f4ecd6;padding:2px 16px 22px}
 .fund small{opacity:.7}.fund .n{font-size:40px;font-weight:800;color:var(--gold2);line-height:1.1}
@@ -220,6 +228,7 @@ async function out(){await sb.auth.signOut();loginView()}
 async function start(){const{data:{user}}=await sb.auth.getUser();if(!user)return loginView();
  const{data}=await sb.from('profiles').select('*').eq('id',user.id).single();if(!data)return alert('الحساب غير مربوط بصلاحية'),loginView();
  me=data;await load();render()}
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 start();
 </script>
 </body>
